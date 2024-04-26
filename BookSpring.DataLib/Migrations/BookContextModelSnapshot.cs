@@ -18,9 +18,8 @@ namespace BookSpring.DataLib.Migrations
 
             modelBuilder.Entity("BookSpring.DataLib.DataModels.BookModel", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -38,7 +37,7 @@ namespace BookSpring.DataLib.Migrations
                         .HasColumnType("varchar(64)");
 
                     b.Property<bool>("IsEBook")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("LendDate")
                         .HasColumnType("varchar(10)");

@@ -10,4 +10,22 @@
       <ProjectReference Include="..\BookSpring.DataLib\BookSpring.DataLib.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="AntDesign" Version="0.18.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="HomePages\Error.razor" />
+      <_ContentIncludedByDefault Remove="HomePages\Home.razor" />
+      <_ContentIncludedByDefault Remove="UserPages\_Imports.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Components\UserPages\_Imports.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\EBookLib\" />
+    </ItemGroup>
+
 </Project>

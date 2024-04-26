@@ -1,40 +1,42 @@
 using System.Text;
 using BookSpring.DataLib;
 using BookSpring.DataLib.DataModels;
-using iOSClub.BookSpring.WebApp.Components;
+using iOSClub.BookSpring.WebApp;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
-var configuration = builder.Configuration; // 读取配置文件
 
 // 将服务添加到容器
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddAntDesign();
+
 builder.Services.Configure<HubOptions>(option => option.MaximumReceiveMessageSize = null);
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-if (builder.Environment.IsDevelopment())
+var sql = Environment.GetEnvironmentVariable("SQL", EnvironmentVariableTarget.Process);
+if (string.IsNullOrEmpty(sql))
 {
     builder.Services.AddDbContextFactory<BookContext>(opt =>
-        opt.UseSqlite(configuration.GetConnectionString("SQLite")));
+        opt.UseSqlite("Data Source=Data.db",
+            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 }
-else if (builder.Environment.IsProduction())
+else
 {
     builder.Services.AddDbContextFactory<BookContext>(opt =>
-        opt.UseNpgsql(configuration.GetConnectionString("PostgreSQL")!));
+        opt.UseNpgsql(sql,
+            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 }
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

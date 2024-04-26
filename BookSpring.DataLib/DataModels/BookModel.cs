@@ -8,15 +8,15 @@ namespace BookSpring.DataLib.DataModels;
 public class BookModel
 {
     [Column(TypeName = "varchar(64)")] public string Name { get; set; } = "";
-    [Column(TypeName = "varchar(10)")] public UserModel CreatedBy { get; set; } = new();
-    [Column(TypeName = "varchar(10)")] public UserModel LendTo { get; set; } = new();
+    public UserModel CreatedBy { get; set; } = new();
+    public UserModel LendTo { get; set; } = new();
     [Column(TypeName = "varchar(10)")] public string? LendDate { get; set; } = "";
     [Column(TypeName = "varchar(10)")] public string? ReturnDate { get; set; } = "";
-    [Key] public int Id { get; init; }
+    [Key] [Column(TypeName = "varchar(64)")]public string Id { get; set; } = "";
     [Column(TypeName = "varchar(64)")] public string ImageUrl { get; set; } = "";
     [Column(TypeName = "varchar(10)")] public string Description { get; set; } = "";
     [Column(TypeName = "varchar(10)")] public string Category { get; set; } = "";
-    public bool IsEBook { get; set; }
+    [Column(TypeName = "boolean")] public bool IsEBook { get; set; }
 
     public void Update(BookModel model)
     {

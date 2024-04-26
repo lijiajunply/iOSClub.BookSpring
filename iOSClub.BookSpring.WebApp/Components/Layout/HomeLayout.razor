@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+@layout MainLayout
+
+<Row OnBreakpoint="OnBreakpoint"/>
+<Layout Class="layout">
+    <Header Class="layout-header">
+        
+    </Header>
+    <Content>
+        @Body
+    </Content>
+    <Footer Style="text-align: center; ">版权归 西安建筑科技大学iOS众创空间俱乐部 所有</Footer>
+</Layout>
+
+<style>
+    .layout {
+        height: 100vh;
+    }
+    .layout-header{
+        background: #fff;
+    }
+</style>
+
+@code
+{
+    private void OnBreakpoint(BreakpointType breakpoint)
+    {
+        _isMobile = breakpoint.IsIn(BreakpointType.Sm, BreakpointType.Xs, BreakpointType.Md);
+        StateHasChanged();
+    }
+
+    private bool _isMobile;
+}
