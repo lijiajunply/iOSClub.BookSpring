@@ -1,33 +1,141 @@
 ﻿@inherits LayoutComponentBase
 @layout MainLayout
+@inject NavigationManager Nav
 
-<Row OnBreakpoint="OnBreakpoint"/>
+<Drawer Placement="top" Closable="false"
+        Visible="@_drawerVisible"
+        Height="340"
+        OnClose="@(() => _drawerVisible = false)">
+    <Flex Gap="large" Justify="space-between">
+        <Image Src="favicon.png" Preview="false" Style="width:40px; height:40px"/>
+        <div style="font-size: 24px;font-weight: bold;color: #1c1f23">XAUAT iOS Club</div>
+    </Flex>
+    <Menu Style="margin-top: 10px;"
+          Accordion Mode="@MenuMode.Inline">
+        <MenuItem RouterLink="/" RouterMatch="NavLinkMatch.All" Title="首页" OnClick="@Close"/>
+        <MenuItem RouterLink="/About" RouterMatch="NavLinkMatch.All" Title="关于我们" OnClick="@Close"/>
+        <MenuItem RouterLink="/Event" RouterMatch="NavLinkMatch.All" Title="社团活动" OnClick="@Close"/>
+        <MenuItem RouterLink="/Articles" RouterMatch="NavLinkMatch.All" Title="技术文章" OnClick="@Close"/>
+        <MenuItem RouterLink="/Login" RouterMatch="NavLinkMatch.All" Title="登录/注册" OnClick="@Close"/>
+    </Menu>
+</Drawer>
+
 <Layout Class="layout">
-    <Header Class="layout-header">
-        
+    <Header Style="background: #fff">
+        <Flex Align="center" Justify="space-between">
+            <a href="/">
+                <Flex Gap="large">
+                    <Image Src="favicon.png" Preview="false" Style="width:40px; height:40px"/>
+                    <div style="font-size: 24px;font-weight: bold;color: #1c1f23" Class="desktop-phone-flex">XAUAT iOS Club</div>
+                </Flex>
+            </a>
+            <Space Size="@("large")" Class="desktop-phone-flex">
+                <Dropdown>
+                    <Overlay>
+                        <Flex Vertical Class="menu-flex">
+                            <a href="/About" class="menu-a">社团简介</a>
+                            <a href="/Structure" class="menu-a">社团结构</a>
+                            <a href="/OtherOrg" class="menu-a">其他组织</a>
+                        </Flex>
+                    </Overlay>
+                    <ChildContent>
+                        <Button Type="@ButtonType.Text" Class="menu-button">
+                            关于我们
+                        </Button>
+                    </ChildContent>
+                </Dropdown>
+                <Dropdown >
+                    <Overlay>
+                        <Flex Vertical Class="menu-flex">
+                            <a href="/Event" class="menu-a">社团活动</a>
+                            <a href="/Articles" class="menu-a">技术博客</a>
+                            <a href="/Tools" class="menu-a">iOS App</a>
+                            <a href="/Article/Competitions" class="menu-a">竟赛资源</a>
+                        </Flex>
+                    </Overlay>
+                    <ChildContent>
+                        <Button Type="@ButtonType.Text" Class="menu-button">
+                            社团动态
+                        </Button>
+                    </ChildContent>
+                </Dropdown>
+                <Button Type="@ButtonType.Primary" Class="menu-button"
+                        OnClick="@(() => Nav.NavigateTo("/Login"))">
+                    登录/注册
+                </Button>
+            </Space>
+            <Button Size="@AntSizeLDSType.Large" Type="@ButtonType.Text" Class="phone-desktop-flex"
+                    OnClick="@(() => _drawerVisible = !_drawerVisible)">
+                <Icon Type="menu" Theme="outline" Style="font-size: 30px;"/>
+            </Button>
+        </Flex>
     </Header>
-    <Content>
+    <Content Style="background: #ffffff;height: 100%">
         @Body
     </Content>
-    <Footer Style="text-align: center; ">版权归 西安建筑科技大学iOS众创空间俱乐部 所有</Footer>
+    <Footer Class="footer">
+        <p>
+            Copyright
+            <Icon Type="copyright" Theme="outline"/>
+            2023 - 2024 XAUAT iOS Club
+        </p>
+        <div>
+            <Space>
+                <Split>
+                    <Divider Type="DirectionVHType.Vertical"/>
+                </Split>
+                <ChildContent>
+                    <SpaceItem Class="desktop-phone-flex">
+                        <a href="https://cn.xauat.edu.cn/" target="_blank">西安建筑科技大学</a>
+                    </SpaceItem>
+                    <SpaceItem>
+                        <a href="https://beian.miit.gov.cn/" target="_blank">备案号 陕ICP备2024031872号</a>
+                    </SpaceItem>
+                    <SpaceItem Class="desktop-phone-flex">
+                        <a href="https://gitee.com/XAUATiOSClub" target="_blank">我们的Gitee组织</a>
+                    </SpaceItem>
+                </ChildContent>
+            </Space>
+        </div>
+    </Footer>
 </Layout>
-
-<style>
-    .layout {
-        height: 100vh;
-    }
-    .layout-header{
-        background: #fff;
-    }
-</style>
 
 @code
 {
-    private void OnBreakpoint(BreakpointType breakpoint)
-    {
-        _isMobile = breakpoint.IsIn(BreakpointType.Sm, BreakpointType.Xs, BreakpointType.Md);
-        StateHasChanged();
+    private bool _drawerVisible;
+    private void Close() => _drawerVisible = false;
+}
+
+<style>
+    .layout {
+        min-height: 100vh;
     }
 
-    private bool _isMobile;
-}
+    .footer {
+        text-align: center;
+    }
+
+    .menu-button {
+        border-radius: 10px;
+        margin-left: 20px;
+    }
+
+    .ant-drawer-content {
+        border-radius: 0 0 20px 20px;
+    }
+
+    .menu-a{
+        color: #3c3c43;
+        margin: 5px;
+        text-align: center;
+        width: 100px;
+        font-size: 15px;
+    }
+
+    .menu-flex{
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px #C0C0C0;
+        padding: 20px;
+    }
+</style>

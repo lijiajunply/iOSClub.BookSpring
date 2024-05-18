@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using BookSpring.DataLib.DataModels;
 using Microsoft.EntityFrameworkCore;
@@ -24,14 +25,44 @@ public sealed class BookContext : DbContext
     }
 }
 
-public static class ContextStatic
+public static class DataTool
 {
-    public static string HashEncryption(this string str)
-        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str + DateTime.Now.ToString("s"))))
-            .Replace("/", "-");
+    public static string StringToHash(string s)
+    {
+        var data = Encoding.UTF8.GetBytes(s);
+        var hash = MD5.HashData(data);
+        var hashStringBuilder = new StringBuilder();
+        foreach (var t in hash)
+            hashStringBuilder.Append(t.ToString("x2"));
+        return hashStringBuilder.ToString();
+    }
 
-    public static string Base64Encryption(this string str) =>
-        Convert.ToBase64String(Encoding.UTF8.GetBytes(str));
+    public static string GetProperties<T>(T t)
+    {
+        StringBuilder builder = new StringBuilder();
+        if (t == null) return builder.ToString();
+
+        var properties = t.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+        if (properties.Length <= 0) return builder.ToString();
+
+        foreach (var item in properties)
+        {
+            var name = item.Name;
+            var value = item.GetValue(t, null);
+            if (item.PropertyType.IsValueType || item.PropertyType.Name.StartsWith("String"))
+            {
+                builder.Append($"{name}:{value ?? "null"},");
+            }
+        }
+
+        return builder.ToString();
+    }
+}
+
+public abstract class DataModel
+{
+    public override string ToString() => $"{GetType()} : {DataTool.GetProperties(this)}";
 }
 
 // ReSharper disable once UnusedType.Global

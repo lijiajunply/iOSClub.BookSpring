@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookSpring.DataLib.DataModels;
 
-public class BookModel
+public class BookModel : DataModel
 {
     [Column(TypeName = "varchar(64)")] public string Name { get; set; } = "";
     public UserModel CreatedBy { get; set; } = new();
