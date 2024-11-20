@@ -1,6 +1,6 @@
 {
-  "name": "BookSpring.WebApp",
-  "short_name": "BookSpring.WebApp",
+  "name": "iOS Club 图书馆",
+  "short_name": "iLibrary",
   "id": "./",
   "start_url": "./",
   "display": "standalone",

@@ -1,14 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BookSpring.DataLib.DataModels;
+namespace BookSpring.WebApp.Models;
 
 public class UserModel
 {
-    [Column(TypeName = "varchar(15)")] public string Name { get; set; } = "";
+    public string Name { get; set; } = "";
 
-    [Key]
-    [Column(TypeName = "varchar(10)")]
+
     public string Id { get; set; } = "";
 
     /// <summary>
@@ -18,7 +17,6 @@ public class UserModel
     /// Department : 部员成员
     /// Member : 普通成员
     /// </summary>
-    [Column(TypeName = "varchar(20)")]
     public string Identity { get; set; } = "Member";
 
     public List<BookModel> CreatedBooks { get; init; } = [];

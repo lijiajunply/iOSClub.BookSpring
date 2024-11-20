@@ -1,0 +1,40 @@
+﻿@using BookSpring.WebApp.Models
+@inherits LayoutComponentBase
+@layout MainLayout
+@inject NavigationManager NavigationManager
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudText Typo="Typo.h5" Class="ml-3">iLibrary</MudText>
+        <MudSpacer/>
+        <MudIconButton Icon="@(IsDarkTheme ? Icons.Material.Rounded.DarkMode : Icons.Material.Rounded.LightMode)"
+                       OnClick="() => ThemeChange(!IsDarkTheme)" Color="Color.Inherit"/>
+        @if (string.IsNullOrEmpty(User.Id))
+        {
+            <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Login"))" Icon="@Icons.Material.Rounded.Login" Color="Color.Inherit" Edge="Edge.End"/>
+        }
+        else
+        {
+            <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Dashboard"))" Icon="@Icons.Material.Rounded.Person" Color="Color.Inherit" Edge="Edge.End"/>
+        }
+    </MudAppBar>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code{
+    [CascadingParameter(Name = "Member")] public UserModel User { get; set; } = new();
+
+    [CascadingParameter(Name = "IsDarkTheme")]
+    public bool IsDarkTheme { get; set; }
+
+    [CascadingParameter(Name = "ThemeChanged")]
+    public Action<bool> ThemeChanged { get; set; }
+
+    private void ThemeChange(bool darkMode)
+    {
+        ThemeChanged(darkMode);
+        IsDarkTheme = darkMode;
+    }
+}

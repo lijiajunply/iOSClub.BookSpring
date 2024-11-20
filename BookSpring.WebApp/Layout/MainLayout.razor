@@ -1,3 +1,78 @@
-﻿@inherits LayoutComponentBase
+﻿@using System.Net
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using BookSpring.WebApp.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authStateProvider
+@inject HttpClient HttpClient
 
-@Body
+<MudThemeProvider @ref="ThemeProvider" @bind-IsDarkMode="@IsDarkTheme"/>
+<CascadingValue Value="Member" Name="Member">
+    <CascadingValue Value="IsDarkTheme" IsFixed="true" Name="IsDarkTheme">
+        <CascadingValue Value="ThemeChanged" IsFixed="true" Name="ThemeChanged">
+            @Body
+        </CascadingValue>
+    </CascadingValue>
+</CascadingValue>
+
+@code{
+    private UserModel Member { get; set; } = new() { Name = "游客" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var jwt = (JwtProvider)authStateProvider;
+
+        var model = await jwt.GetPermission();
+        if (model == null) return;
+
+        var cookie = await jwt.GetCookie();
+
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+        var response = await HttpClient.GetAsync("http://localhost:5103/api/Member/GetData");
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            //await MessageService.Error("登录已过期，请重新登录");
+            var provider = (JwtProvider)authStateProvider;
+            await provider.Logout();
+        }
+        else
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            var s = JsonSerializer.Deserialize<UserModel>(json);
+            if (s != null)
+            {
+                Member = s;
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            IsDarkTheme = await ThemeProvider.GetSystemPreference();
+            await ThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+            StateHasChanged();
+        }
+    }
+
+    private bool IsDarkTheme { get; set; }
+
+    private MudThemeProvider ThemeProvider { get; set; }
+
+    private Task OnSystemPreferenceChanged(bool newValue)
+    {
+        IsDarkTheme = newValue;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private void ThemeChanged(bool newValue)
+    {
+        IsDarkTheme = newValue;
+        StateHasChanged();
+    }
+
+}
