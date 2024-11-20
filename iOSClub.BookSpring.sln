@@ -1,8 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "iOSClub.BookSpring.WebApp", "iOSClub.BookSpring.WebApp\iOSClub.BookSpring.WebApp.csproj", "{48FD1075-DFF4-427C-8F7D-FF3FE7B485F5}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookSpring.DataLib", "BookSpring.DataLib\BookSpring.DataLib.csproj", "{D457DE6C-86A9-47EC-9017-6A1BBAF1E499}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookSpring.WebApp", "BookSpring.WebApp\BookSpring.WebApp.csproj", "{450CAAEC-AA84-47EE-A844-F18A4736B18A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookSpring.WebApi", "BookSpring.WebApi\BookSpring.WebApi.csproj", "{1ADBF478-4EC3-4367-B924-BAF8005B5AE5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,13 +12,17 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{48FD1075-DFF4-427C-8F7D-FF3FE7B485F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48FD1075-DFF4-427C-8F7D-FF3FE7B485F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48FD1075-DFF4-427C-8F7D-FF3FE7B485F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48FD1075-DFF4-427C-8F7D-FF3FE7B485F5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D457DE6C-86A9-47EC-9017-6A1BBAF1E499}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D457DE6C-86A9-47EC-9017-6A1BBAF1E499}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D457DE6C-86A9-47EC-9017-6A1BBAF1E499}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D457DE6C-86A9-47EC-9017-6A1BBAF1E499}.Release|Any CPU.Build.0 = Release|Any CPU
+		{450CAAEC-AA84-47EE-A844-F18A4736B18A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{450CAAEC-AA84-47EE-A844-F18A4736B18A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{450CAAEC-AA84-47EE-A844-F18A4736B18A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{450CAAEC-AA84-47EE-A844-F18A4736B18A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1ADBF478-4EC3-4367-B924-BAF8005B5AE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ADBF478-4EC3-4367-B924-BAF8005B5AE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ADBF478-4EC3-4367-B924-BAF8005B5AE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ADBF478-4EC3-4367-B924-BAF8005B5AE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

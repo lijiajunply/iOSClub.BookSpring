@@ -8,8 +8,8 @@ namespace BookSpring.DataLib.DataModels;
 public class BookModel : DataModel
 {
     [Column(TypeName = "varchar(64)")] public string Name { get; set; } = "";
-    public UserModel CreatedBy { get; set; } = new();
-    public UserModel LendTo { get; set; } = new();
+    public UserModel? CreatedBy { get; set; } = new();
+    public UserModel? LendTo { get; set; } = new();
     [Column(TypeName = "varchar(10)")] public string? LendDate { get; set; } = "";
     [Column(TypeName = "varchar(10)")] public string? ReturnDate { get; set; } = "";
     [Key] [Column(TypeName = "varchar(64)")]public string Id { get; set; } = "";

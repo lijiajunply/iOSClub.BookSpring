@@ -1,0 +1,6 @@
+@BookSpring.WebApi_HostAddress = http://localhost:5259
+
+GET {{BookSpring.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
