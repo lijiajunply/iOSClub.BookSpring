@@ -1,4 +1,5 @@
-﻿@using System.Net
+﻿@using System.Diagnostics.CodeAnalysis
+@using System.Net
 @using System.Net.Http.Headers
 @using System.Text.Json
 @using BookSpring.WebApp.Models
@@ -6,10 +7,11 @@
 @inherits LayoutComponentBase
 @inject AuthenticationStateProvider authStateProvider
 @inject HttpClient HttpClient
+@inject ISnackbar Snackbar
 
 <MudThemeProvider @ref="ThemeProvider" @bind-IsDarkMode="@IsDarkTheme"/>
 <CascadingValue Value="Member" Name="Member">
-    <CascadingValue Value="IsDarkTheme" IsFixed="true" Name="IsDarkTheme">
+    <CascadingValue Value="IsDarkTheme" Name="IsDarkTheme">
         <CascadingValue Value="ThemeChanged" IsFixed="true" Name="ThemeChanged">
             @Body
         </CascadingValue>
@@ -29,17 +31,17 @@
         var cookie = await jwt.GetCookie();
 
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-        var response = await HttpClient.GetAsync("http://localhost:5103/api/Member/GetData");
+        var response = await HttpClient.GetAsync("http://localhost:5259/User");
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            //await MessageService.Error("登录已过期，请重新登录");
-            var provider = (JwtProvider)authStateProvider;
-            await provider.Logout();
+            Snackbar.Add("登录已过期，请重新登录", Severity.Error);
+            await jwt.Logout();
         }
         else
         {
             var json = await response.Content.ReadAsStringAsync();
+            json = GZipServer.DecompressString(json);
             var s = JsonSerializer.Deserialize<UserModel>(json);
             if (s != null)
             {
@@ -60,7 +62,7 @@
 
     private bool IsDarkTheme { get; set; }
 
-    private MudThemeProvider ThemeProvider { get; set; }
+    [NotNull]private MudThemeProvider? ThemeProvider { get; set; }
 
     private Task OnSystemPreferenceChanged(bool newValue)
     {

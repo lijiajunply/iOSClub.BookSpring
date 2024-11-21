@@ -20,8 +20,12 @@ public sealed class BookContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserModel>().HasMany(x => x.CreatedBooks).WithOne(x => x.CreatedBy);
-        modelBuilder.Entity<UserModel>().HasMany(x => x.LendBooks).WithOne(x => x.LendTo);
+        modelBuilder.Entity<UserModel>().HasMany(x => x.CreatedBooks)
+            .WithOne(x => x.CreatedBy)
+            .HasForeignKey(x => x.CreatedById).IsRequired(false);
+        modelBuilder.Entity<UserModel>().HasMany(x => x.LendBooks)
+            .WithOne(x => x.LendTo)
+            .HasForeignKey(x => x.LendToId).IsRequired(false);
     }
 }
 

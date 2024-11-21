@@ -12,10 +12,7 @@ public class UserModel
     public string Id { get; set; } = "";
 
     /// <summary>
-    /// Founder : 创始人
-    /// President : 社长,副社长,秘书长
-    /// Minister : 部长/副部长
-    /// Department : 部员成员
+    /// Admin : 管理员
     /// Member : 普通成员
     /// </summary>
     [Column(TypeName = "varchar(20)")]

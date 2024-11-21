@@ -5,7 +5,7 @@
 namespace BookSpring.DataLib.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,7 +15,8 @@ namespace BookSpring.DataLib.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "varchar(10)", nullable: false),
-                    Name = table.Column<string>(type: "varchar(15)", nullable: false)
+                    Name = table.Column<string>(type: "varchar(15)", nullable: false),
+                    Identity = table.Column<string>(type: "varchar(20)", nullable: false)
                 },
                 constraints: table =>
                 {

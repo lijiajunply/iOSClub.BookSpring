@@ -1,21 +1,40 @@
-﻿@using BookSpring.WebApp.Models
+﻿@using System.Diagnostics.CodeAnalysis
+@using BookSpring.WebApp.Models
 @inherits LayoutComponentBase
 @layout MainLayout
 @inject NavigationManager NavigationManager
 
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h5" Class="ml-3">iLibrary</MudText>
+        <MudButton Href="/"
+                   Variant="Variant.Text"
+                   Color="Color.Inherit"
+                   Style="text-transform:none">
+            <MudIcon Icon="@Icons.Material.Rounded.LocalLibrary"/>
+            <MudText Typo="Typo.h5" Class="ml-3">iLibrary</MudText>
+        </MudButton>
         <MudSpacer/>
         <MudIconButton Icon="@(IsDarkTheme ? Icons.Material.Rounded.DarkMode : Icons.Material.Rounded.LightMode)"
                        OnClick="() => ThemeChange(!IsDarkTheme)" Color="Color.Inherit"/>
-        @if (string.IsNullOrEmpty(User.Id))
+        @if (string.IsNullOrEmpty(Member.Id))
         {
-            <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Login"))" Icon="@Icons.Material.Rounded.Login" Color="Color.Inherit" Edge="Edge.End"/>
+            <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Login"))" Icon="@Icons.Material.Rounded.Login"
+                           Color="Color.Inherit" Edge="Edge.End"/>
         }
         else
         {
-            <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Dashboard"))" Icon="@Icons.Material.Rounded.Person" Color="Color.Inherit" Edge="Edge.End"/>
+            <MudMenu ActivationEvent="@MouseEvent.MouseOver"
+                     AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                <ActivatorContent>
+                    <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Dashboard"))" Icon="@Icons.Material.Rounded.Person"
+                                   Color="Color.Inherit" Edge="Edge.End"/>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem>个人信息</MudMenuItem>
+                    <MudMenuItem>图书馆</MudMenuItem>
+                    <MudMenuItem>注销</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
         }
     </MudAppBar>
     <MudMainContent>
@@ -24,17 +43,21 @@
 </MudLayout>
 
 @code{
-    [CascadingParameter(Name = "Member")] public UserModel User { get; set; } = new();
+
+    [CascadingParameter(Name = "Member")]
+    [NotNull]
+    public UserModel? Member { get; set; }
 
     [CascadingParameter(Name = "IsDarkTheme")]
     public bool IsDarkTheme { get; set; }
 
     [CascadingParameter(Name = "ThemeChanged")]
-    public Action<bool> ThemeChanged { get; set; }
+    [NotNull]
+    public Action<bool>? ThemeChanged { get; set; }
 
     private void ThemeChange(bool darkMode)
     {
         ThemeChanged(darkMode);
-        IsDarkTheme = darkMode;
     }
+
 }

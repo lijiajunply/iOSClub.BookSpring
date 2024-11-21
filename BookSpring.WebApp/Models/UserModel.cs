@@ -1,13 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Text.Json.Serialization;
 
 namespace BookSpring.WebApp.Models;
 
 public class UserModel
 {
+    // [JsonPropertyName("name")]
     public string Name { get; set; } = "";
-
-
+    
+    // [JsonPropertyName("id")]
     public string Id { get; set; } = "";
 
     /// <summary>
@@ -17,9 +17,13 @@ public class UserModel
     /// Department : 部员成员
     /// Member : 普通成员
     /// </summary>
+    /// 
+    // [JsonPropertyName("identity")]
     public string Identity { get; set; } = "Member";
 
+    // [JsonPropertyName("createdBooks")]
     public List<BookModel> CreatedBooks { get; init; } = [];
+    // [JsonPropertyName("lendBooks")]
     public List<BookModel> LendBooks { get; init; } = [];
 
     public void Update(UserModel model)

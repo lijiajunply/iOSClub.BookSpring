@@ -1,0 +1,134 @@
+﻿@page "/Library"
+@using System.Net.Http.Headers
+@using BookSpring.WebApp.Dialogs
+@using BookSpring.WebApp.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient httpClient
+@inject NavigationManager Nav
+@inject IDialogService DialogService
+@inject AuthenticationStateProvider authStateProvider
+@inject ISnackbar Snackbar
+
+<PageTitle>所有图书 - iLibrary</PageTitle>
+
+<MudPaper Elevation="25">
+    <MudToolBar>
+        <MudText Typo="Typo.h6">所有书籍</MudText>
+        <MudSpacer/>
+        <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>
+    </MudToolBar>
+    <MudTable T="BookModel" FixedHeader Items="@Books" Hover="true"
+              Class="mt-5"
+              Filter="new Func<BookModel, bool>(FilterFunc)"
+              Breakpoint="Breakpoint.Sm"
+              RowClass="cursor-pointer" OnRowClick="RowClickEvent">
+        <ToolBarContent>
+            @if (SearchType == "IsEBook")
+            {
+                <MudSwitch Label="电子/纸质" @bind-Value="IsEBookSwitch" Color="Color.Primary"/>
+            }
+            else
+            {
+                <MudTextField @bind-Value="SearchString" Placeholder="Search" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+                </MudTextField>
+            }
+            <MudSpacer/>
+            <MudSelect @bind-Value="SearchType" Label="选择搜索类型" Placeholder="请选择">
+                <MudSelectItem Value="@("书名")">书名</MudSelectItem>
+                <MudSelectItem Value="@("标签")">标签</MudSelectItem>
+                <MudSelectItem Value="@("IsEBook")">电子/纸质</MudSelectItem>
+            </MudSelect>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>名称</MudTh>
+            <MudTh>标签</MudTh>
+            <MudTh>是否为电子书</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="名称">@context.Name</MudTd>
+            <MudTd DataLabel="标签">@context.Category</MudTd>
+            <MudTd DataLabel="是否为电子书">@context.IsEBook</MudTd>
+        </RowTemplate>
+        <RowEditingTemplate>
+            <MudTd DataLabel="名称">@context.Name</MudTd>
+            <MudTd DataLabel="标签">
+                <MudTextField @bind-Value="context.Category" Required/>
+            </MudTd>
+            <MudTd DataLabel="是否为电子书">
+                <MudTextField @bind-Value="context.Name" Required/>
+            </MudTd>
+        </RowEditingTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new[] { 10, 25, int.MaxValue }"
+                           RowsPerPageString="每页行数："
+                           InfoFormat="{first_item}-{last_item}, 共 {all_items}本书"
+                           AllItemsText="全部"
+                           HorizontalAlignment="@HorizontalAlignment.Center"/>
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<BookModel> Books { get; set; } = [];
+    private string SearchString { get; set; } = "";
+    private string SearchType { get; set; } = "书名";
+    public bool IsEBookSwitch { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await httpClient.GetAsync("http://localhost:5259/Book");
+        Books = await response.Content.ReadFromJsonAsync<List<BookModel>>() ?? [];
+    }
+
+    private void RowClickEvent(TableRowClickEventArgs<BookModel> tableRowClickEventArgs)
+    {
+        if (tableRowClickEventArgs.Item != null)
+        {
+            Nav.NavigateTo($"/Book/{tableRowClickEventArgs.Item.Id}");
+        }
+    }
+
+    private bool FilterFunc(BookModel element)
+    {
+        if (string.IsNullOrWhiteSpace(SearchString))
+            return true;
+        return SearchType switch
+        {
+            "书名" => element.Name.Contains(SearchString, StringComparison.OrdinalIgnoreCase),
+            "标签" => element.Category.Contains(SearchString, StringComparison.OrdinalIgnoreCase),
+            "IsEBook" => element.IsEBook == IsEBookSwitch,
+            _ => false
+        };
+    }
+
+    private async Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { BackgroundClass = "my-custom-class" };
+        var a = await DialogService.ShowAsync<AddBookDialog>("添加书籍", options);
+        var result = await a.Result;
+
+        if (result is { Canceled: false })
+        {
+            if (result.Data is not BookModel book) return;
+            var jwt = (JwtProvider)authStateProvider;
+            var cookie = await jwt.GetCookie();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+            var response = await httpClient.PostAsJsonAsync("http://localhost:5259/Book", book);
+            if (response.IsSuccessStatusCode)
+            {
+                var newBook = await response.Content.ReadFromJsonAsync<BookModel>();
+                if (newBook is null) return;
+                Snackbar.Add("添加书籍成功", Severity.Success);
+                Books.Add(newBook);
+            }
+        }
+    }
+
+}
+
+<style>
+    .my-custom-class {
+        backdrop-filter: blur(10px);
+    }
+</style>

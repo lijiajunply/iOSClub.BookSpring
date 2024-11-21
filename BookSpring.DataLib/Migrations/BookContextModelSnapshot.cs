@@ -14,7 +14,7 @@ namespace BookSpring.DataLib.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.3");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
 
             modelBuilder.Entity("BookSpring.DataLib.DataModels.BookModel", b =>
                 {
@@ -65,6 +65,10 @@ namespace BookSpring.DataLib.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(10)");
+
+                    b.Property<string>("Identity")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("Name")
                         .IsRequired()

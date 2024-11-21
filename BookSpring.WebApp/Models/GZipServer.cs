@@ -1,7 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text;
 
-namespace BookSpring.WebApi.Controllers;
+namespace BookSpring.WebApp.Models;
 
 public static class GZipServer
 {
@@ -15,7 +15,7 @@ public static class GZipServer
         return Convert.ToBase64String(compressAfterByte);
     }
 
-    public static byte[] Compress(byte[] data)
+    private static byte[] Compress(byte[] data)
     {
         try
         {

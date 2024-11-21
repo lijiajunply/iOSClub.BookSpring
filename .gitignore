@@ -6,3 +6,5 @@ riderModule.iml
 EBookLib/
 
 *.db
+*.db-shm
+*.db-wal

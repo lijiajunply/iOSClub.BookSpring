@@ -10,14 +10,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookSpring.DataLib.Migrations
 {
     [DbContext(typeof(BookContext))]
-    [Migration("20241120074402_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241121165350_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.3");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
 
             modelBuilder.Entity("BookSpring.DataLib.DataModels.BookModel", b =>
                 {
@@ -68,6 +68,10 @@ namespace BookSpring.DataLib.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(10)");
+
+                    b.Property<string>("Identity")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("Name")
                         .IsRequired()

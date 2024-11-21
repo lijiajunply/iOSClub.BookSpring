@@ -1,0 +1,74 @@
+﻿@using BookSpring.WebApp.Models
+@using Minio.Exceptions
+@using Minio.DataModel.Args
+@using Minio
+@inject MinioClient client
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-3 mb-n1"/>
+            添加图书
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="@Book" OnValidSubmit="DeleteServer">
+            <DataAnnotationsValidator/>
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField @bind-Value="@Book.Name" For="@(() => Book.Name)" Label="书籍名称"/>
+                    <MudTextField @bind-Value="@Book.Description" For="@(() => Book.Description)" Label="简介"/>
+                    <MudTextField @bind-Value="@Book.Category" For="@(() => Book.Category)" Label="标签"/>
+                    <MudSwitch Label="纸质/电子" @bind-Value="@Book.IsEBook" For="@(() => Book.IsEBook)" Color="Color.Primary"/>
+                    @if (Book.IsEBook)
+                    {
+                        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                            <ActivatorContent>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.CloudUpload">
+                                    Upload Files
+                                </MudButton>
+                            </ActivatorContent>
+                        </MudFileUpload>
+                    }
+                    <div>
+                        <MudButton OnClick="Cancel">取消</MudButton>
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">添加</MudButton>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BookModel Book { get; set; } = new();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void DeleteServer()
+    {
+        MudDialog.Close(DialogResult.Ok(Book));
+    }
+
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var a = new PutObjectArgs();
+            a.WithStreamData(stream);
+            a.WithObjectSize(stream.Length);
+            a.WithContentType(file.ContentType);
+            a.WithFileName(file.Name);
+            await client.PutObjectAsync(a);
+        }
+        catch (MinioException)
+        {
+        }
+    }
+
+}

@@ -3,8 +3,8 @@
 public class BookModel
 {
     public string Name { get; set; } = "";
-    public UserModel? CreatedBy { get; set; } = new();
-    public UserModel? LendTo { get; set; } = new();
+    public UserModel? CreatedBy { get; set; }
+    public UserModel? LendTo { get; set; }
     public string? LendDate { get; set; } = "";
     public string? ReturnDate { get; set; } = "";
     public string Id { get; set; } = "";

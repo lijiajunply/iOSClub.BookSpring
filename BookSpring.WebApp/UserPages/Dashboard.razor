@@ -1,39 +1,60 @@
 ﻿@page "/Dashboard"
+@using System.Diagnostics.CodeAnalysis
+@using BookSpring.WebApp.Models
 
 <PageTitle>用户面板 - iLibrary</PageTitle>
 
-<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
-    <MudGrid>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudGrid>
-                <MudItem xs="12">
-                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+
+<MudGrid>
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+            <MudGrid Style="height: 100%;">
+                <MudItem xs="12" sm="6" md="6">
+                    <MudPaper Class="d-flex justify-center flex-grow-1 gap-4 ava" Elevation="0">
+                        <div Class="d-flex align-content-center flex-wrap">
+                            <div>
+                                <MudAvatar Color="Color.Primary" Size="Size.Large">
+                                    <MudIcon Icon="@Icons.Material.Rounded.Person" Size="Size.Large"/>
+                                </MudAvatar>
+                                <div class="--mud-palette-text-secondary"
+                                     style="margin: 5px;text-align: center;">
+                                    @Member.Name
+                                </div>
+                            </div>
+                        </div>
+                    </MudPaper>
                 </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+                <MudItem xs="12" sm="6" md="6">
+                    <MudList T="string">
+                        <MudListItem Text="学号" SecondaryText="@Member.Id"/>
+                        <MudListItem Text="创建书籍" SecondaryText="@Member.CreatedBooks.Count.ToString()"/>
+                        <MudListItem Text="借出" SecondaryText="@Member.LendBooks.Count.ToString()"/>
+                    </MudList>
                 </MudItem>
             </MudGrid>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 100%"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-    </MudGrid>
-</MudContainer>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;"></MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code{
+
+    [CascadingParameter(Name = "Member")]
+    [NotNull]
+    public UserModel? Member { get; set; }
+
+}
+
+<style>
+    .ava {
+        height: 100%;
+    }
+
+    @@media screen and (max-width: 768px) {
+        .ava {
+            height: auto;
+        }
+    }
+</style>

@@ -14,6 +14,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin() //允许任何来源的主机访问
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddAuthorizationCore();
 builder.Services.AddAuthentication(options => { options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; })
     .AddJwtBearer(options =>
@@ -78,6 +88,8 @@ using (var scope = app.Services.CreateScope())
     await context.SaveChangesAsync();
     await context.DisposeAsync();
 }
+
+app.UseCors();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
