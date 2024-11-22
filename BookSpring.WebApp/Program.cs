@@ -10,15 +10,14 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var endpoint = "https://miniocon.hkg1.zeabur.app/";
-var accessKey = "fwjUZer4vuPLXeXkiO1I";
-var secretKey = "lJgRGl0QO3gzlbJJdOke9Ifr2oggSEOVzSuw0Bc1";
+const string endpoint = "miniocon.hkg1.zeabur.app";
+const string accessKey = "fwjUZer4vuPLXeXkiO1I";
+const string secretKey = "lJgRGl0QO3gzlbJJdOke9Ifr2oggSEOVzSuw0Bc1";
 
 builder.Services.AddMinio(configureClient => configureClient
-            .WithEndpoint(endpoint)
-            .WithCredentials(accessKey, secretKey)
-            .WithSSL()
-            .Build());
+    .WithEndpoint(endpoint)
+    .WithCredentials(accessKey, secretKey)
+    .WithSSL());
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

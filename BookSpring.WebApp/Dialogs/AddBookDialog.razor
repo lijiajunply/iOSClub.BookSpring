@@ -58,6 +58,9 @@
     {
         try
         {
+            var endpoint = "miniocon.hkg1.zeabur.app";
+            var accessKey = "g0oVQwblgCo177fgYE83";
+            var secretKey = "5LUbeydwOLTjgSlEjwI6hJ5FntbbDLM5YZ3QBE7d";
             await using var stream = file.OpenReadStream();
             var a = new PutObjectArgs();
             a.WithStreamData(stream);
@@ -66,8 +69,9 @@
             a.WithFileName(file.Name);
             await client.PutObjectAsync(a);
         }
-        catch (MinioException)
+        catch (MinioException ex)
         {
+            Console.WriteLine(ex);
         }
     }
 
