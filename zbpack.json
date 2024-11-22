@@ -1,0 +1,5 @@
+﻿{
+    "dotnet": {
+        "submodule_dir": "BookSpring.WebApp"
+    }
+}
