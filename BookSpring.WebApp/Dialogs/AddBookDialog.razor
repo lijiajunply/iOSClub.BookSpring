@@ -1,8 +1,5 @@
 ﻿@using BookSpring.WebApp.Models
-@using Minio.Exceptions
-@using Minio.DataModel.Args
-@using Minio
-@inject MinioClient client
+@inject HttpClient client
 
 <MudDialog>
     <TitleContent>
@@ -56,23 +53,7 @@
 
     private async Task UploadFiles(IBrowserFile file)
     {
-        try
-        {
-            var endpoint = "miniocon.hkg1.zeabur.app";
-            var accessKey = "g0oVQwblgCo177fgYE83";
-            var secretKey = "5LUbeydwOLTjgSlEjwI6hJ5FntbbDLM5YZ3QBE7d";
-            await using var stream = file.OpenReadStream();
-            var a = new PutObjectArgs();
-            a.WithStreamData(stream);
-            a.WithObjectSize(stream.Length);
-            a.WithContentType(file.ContentType);
-            a.WithFileName(file.Name);
-            await client.PutObjectAsync(a);
-        }
-        catch (MinioException ex)
-        {
-            Console.WriteLine(ex);
-        }
+        
     }
 
 }
