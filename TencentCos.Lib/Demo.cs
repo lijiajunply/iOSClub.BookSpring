@@ -32,8 +32,7 @@ class CosDemo
             Console.WriteLine("创建文件目录：" + result);
 
             //目录更新
-            var updateParasDic = new Dictionary<string, string>();
-            updateParasDic.Add(CosParameters.PARA_BIZ_ATTR, "new attribute");
+            var updateParasDic = new Dictionary<string, string> { { CosParameters.PARA_BIZ_ATTR, "new attribute" } };
             result = cos.UpdateFolder(bucketName, folder, updateParasDic);
             Console.WriteLine("目录更新:" + result);
 

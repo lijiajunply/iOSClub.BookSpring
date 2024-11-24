@@ -7,17 +7,18 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["BookSpring.WebApp/BookSpring.WebApp.csproj", "BookSpring.WebApp/"]
-RUN dotnet restore "BookSpring.WebApp/BookSpring.WebApp.csproj"
+COPY ["BookSpring.WebApi/BookSpring.WebApi.csproj", "BookSpring.WebApi/"]
+COPY ["BookSpring.DataLib/BookSpring.DataLib.csproj", "BookSpring.DataLib/"]
+RUN dotnet restore "BookSpring.WebApi/BookSpring.WebApi.csproj"
 COPY . .
-WORKDIR "/src/BookSpring.WebApp"
-RUN dotnet build "BookSpring.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/BookSpring.WebApi"
+RUN dotnet build "BookSpring.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "BookSpring.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "BookSpring.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "BookSpring.WebApp.dll"]
+ENTRYPOINT ["dotnet", "BookSpring.WebApi.dll"]
