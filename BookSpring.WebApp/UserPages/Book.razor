@@ -121,7 +121,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var response = await httpClient.GetAsync($"http://localhost:5259/Book/{Id}");
+        var response = await httpClient.GetAsync($"https://book.hnd1.zeabur.app/Book/{Id}");
         Data = await response.Content.ReadFromJsonAsync<BookModel>() ?? new BookModel();
         await base.OnParametersSetAsync();
     }
@@ -138,7 +138,7 @@
             var jwt = (JwtProvider)authStateProvider;
             var cookie = await jwt.GetCookie();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-            var response = await httpClient.PostAsJsonAsync("http://localhost:5259/Lend", book);
+            var response = await httpClient.PostAsJsonAsync("https://book.hnd1.zeabur.app/Lend", book);
             if (response.IsSuccessStatusCode)
             {
                 Snackbar.Add("借阅书籍成功", Severity.Success);
@@ -167,7 +167,7 @@
             var jwt = (JwtProvider)authStateProvider;
             var cookie = await jwt.GetCookie();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-            var response = await httpClient.PostAsJsonAsync("http://localhost:5259/Book", book);
+            var response = await httpClient.PostAsJsonAsync("https://book.hnd1.zeabur.app/Book", book);
             if (response.IsSuccessStatusCode)
             {
                 Snackbar.Add("更改成功", Severity.Success);
@@ -183,7 +183,7 @@
         var jwt = (JwtProvider)authStateProvider;
         var cookie = await jwt.GetCookie();
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-        var response = await httpClient.DeleteAsync($"http://localhost:5259/Book/{Data.Id}");
+        var response = await httpClient.DeleteAsync($"https://book.hnd1.zeabur.app/Book/{Data.Id}");
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("删除成功", Severity.Success);
@@ -198,7 +198,7 @@
         var cookie = await jwt.GetCookie();
         Data.EBookUrl = url;
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-        var response = await httpClient.PostAsJsonAsync("http://localhost:5259/Book", Data);
+        var response = await httpClient.PostAsJsonAsync("https://book.hnd1.zeabur.app/Book", Data);
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("更换成功", Severity.Success);

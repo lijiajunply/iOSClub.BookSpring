@@ -31,7 +31,7 @@
         var cookie = await jwt.GetCookie();
 
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-        var response = await HttpClient.GetAsync("http://localhost:5259/User");
+        var response = await HttpClient.GetAsync("https://book.hnd1.zeabur.app/User");
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
