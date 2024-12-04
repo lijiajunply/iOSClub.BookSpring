@@ -36,7 +36,7 @@ public class BookController(
     [TokenActionFilter]
     [Authorize(Roles = "Admin")]
     [HttpPost("/AddBooks")]
-    public async Task<ActionResult> Post(Stream content)
+    public async Task<ActionResult> Post([FromBody]string content)
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
         if (member == null) return NotFound();
@@ -45,9 +45,15 @@ public class BookController(
             .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
         if (member is not { Identity: "Admin" }) return NotFound();
 
-        var data = await JsonSerializer.DeserializeAsync<BookModel[]>(content) ?? [];
+        content = GZipServer.DecompressString(content);
+        
+        var data = JsonSerializer.Deserialize<BookModel[]>(content) ?? [];
 
-        await context.Books.AddRangeAsync(data);
+        foreach (var model in data)
+        {
+            if(await context.Books.AnyAsync(e => e.Id == model.Id))continue;
+            await context.Books.AddAsync(model);
+        }
 
         await context.SaveChangesAsync();
         return Ok();

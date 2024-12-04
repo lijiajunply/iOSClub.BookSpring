@@ -183,7 +183,7 @@
 
     private async Task OpenDialogAsync()
     {
-        var options = new DialogOptions(){BackgroundClass="my-dialog-class"};
+        var options = new DialogOptions() { BackgroundClass = "my-dialog-class" };
         var a = await DialogService.ShowAsync<AddBookDialog>("添加书籍", options);
         var result = await a.Result;
 
@@ -209,9 +209,13 @@
         if (arg == null) return;
         var jwt = (JwtProvider)authStateProvider;
         var cookie = await jwt.GetCookie();
-        
+
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-        var response = await httpClient.PostAsync($"{DataStatic.BaseUrl}/AddBooks", new StreamContent(arg.OpenReadStream()));
+
+        var reader = await new StreamReader(arg.OpenReadStream()).ReadToEndAsync();
+        reader = GZipServer.CompressString(reader);
+
+        var response = await httpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/AddBooks", reader);
 
         if (response.IsSuccessStatusCode)
         {
