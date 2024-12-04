@@ -16,11 +16,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.AllowAnyOrigin() //允许任何来源的主机访问
-            .AllowAnyMethod()
+        policy.WithOrigins("https://lib.xauat.site") // 明确列出允许的源
+            .AllowCredentials() // 允许凭据
             .AllowAnyHeader()
+            .AllowAnyMethod()
             .SetIsOriginAllowed(origin => true);
     });
 });
@@ -90,7 +91,7 @@ using (var scope = app.Services.CreateScope())
     await context.DisposeAsync();
 }
 
-app.UseCors();
+app.UseCors("AllowSpecificOrigin");
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
