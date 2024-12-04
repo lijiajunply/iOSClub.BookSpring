@@ -31,12 +31,12 @@ namespace BookSpring.DataLib.Migrations
                     Name = table.Column<string>(type: "varchar(64)", nullable: false),
                     CreatedById = table.Column<string>(type: "varchar(10)", nullable: true),
                     LendToId = table.Column<string>(type: "varchar(10)", nullable: true),
-                    LendDate = table.Column<string>(type: "varchar(10)", nullable: true),
-                    ReturnDate = table.Column<string>(type: "varchar(10)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "varchar(64)", nullable: false),
-                    Description = table.Column<string>(type: "varchar(10)", nullable: false),
-                    Category = table.Column<string>(type: "varchar(10)", nullable: false),
-                    EBookUrl = table.Column<string>(type: "varchar(10)", nullable: false)
+                    LendDate = table.Column<string>(type: "varchar(64)", nullable: true),
+                    ReturnDate = table.Column<string>(type: "varchar(64)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "varchar(256)", nullable: false),
+                    Description = table.Column<string>(type: "varchar(64)", nullable: false),
+                    Category = table.Column<string>(type: "varchar(64)", nullable: false),
+                    EBookUrl = table.Column<string>(type: "varchar(64)", nullable: false)
                 },
                 constraints: table =>
                 {

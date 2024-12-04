@@ -15,17 +15,17 @@ public class BookModel : DataModel
     [Column(TypeName = "varchar(10)")] public string? LendToId { get; set; }
 
     [JsonIgnore] public UserModel? LendTo { get; set; }
-    [Column(TypeName = "varchar(10)")] public string? LendDate { get; set; } = "";
-    [Column(TypeName = "varchar(10)")] public string? ReturnDate { get; set; } = "";
+    [Column(TypeName = "varchar(64)")] public string? LendDate { get; set; } = "";
+    [Column(TypeName = "varchar(64)")] public string? ReturnDate { get; set; } = "";
 
     [Key]
     [Column(TypeName = "varchar(64)")]
     public string Id { get; set; } = "";
 
-    [Column(TypeName = "varchar(64)")] public string ImageUrl { get; set; } = "";
-    [Column(TypeName = "varchar(10)")] public string Description { get; set; } = "";
-    [Column(TypeName = "varchar(10)")] public string Category { get; set; } = "";
-    [Column(TypeName = "varchar(10)")] public string EBookUrl { get; set; } = "";
+    [Column(TypeName = "varchar(256)")] public string ImageUrl { get; set; } = "";
+    [Column(TypeName = "varchar(64)")] public string Description { get; set; } = "";
+    [Column(TypeName = "varchar(64)")] public string Category { get; set; } = "";
+    [Column(TypeName = "varchar(64)")] public string EBookUrl { get; set; } = "";
 
     public void Update(BookModel model)
     {

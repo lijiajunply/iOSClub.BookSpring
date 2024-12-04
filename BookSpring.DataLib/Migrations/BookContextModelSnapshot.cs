@@ -23,25 +23,25 @@ namespace BookSpring.DataLib.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("CreatedById")
                         .HasColumnType("varchar(10)");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("EBookUrl")
                         .IsRequired()
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
-                        .HasColumnType("varchar(64)");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("LendDate")
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("LendToId")
                         .HasColumnType("varchar(10)");
@@ -51,7 +51,7 @@ namespace BookSpring.DataLib.Migrations
                         .HasColumnType("varchar(64)");
 
                     b.Property<string>("ReturnDate")
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("varchar(64)");
 
                     b.HasKey("Id");
 
