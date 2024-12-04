@@ -47,7 +47,7 @@ public class BookController(
 
         var data = await JsonSerializer.DeserializeAsync<BookModel[]>(content) ?? [];
 
-        member.CreatedBooks.AddRange(data);
+        await context.Books.AddRangeAsync(data);
 
         await context.SaveChangesAsync();
         return Ok();

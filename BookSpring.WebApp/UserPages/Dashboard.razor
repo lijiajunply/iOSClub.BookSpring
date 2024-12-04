@@ -177,7 +177,7 @@
             var jwt = (JwtProvider)authStateProvider;
             var cookie = await jwt.GetCookie();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-            var response = await httpClient.PostAsJsonAsync("https://book.hnd1.zeabur.app/Book", book);
+            var response = await httpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/Book", book);
             if (response.IsSuccessStatusCode)
             {
                 var newBook = await response.Content.ReadFromJsonAsync<BookModel>();

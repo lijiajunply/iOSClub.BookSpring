@@ -46,7 +46,7 @@
 
     private async Task OnValidSubmit(EditContext context)
     {
-        var response = await HttpClient.PostAsJsonAsync("https://book.hnd1.zeabur.app/User", Model);
+        var response = await HttpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/User", Model);
         if (response.IsSuccessStatusCode)
         {
             var jwt = await response.Content.ReadAsStringAsync();

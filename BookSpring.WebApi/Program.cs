@@ -20,7 +20,8 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyOrigin() //允许任何来源的主机访问
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .SetIsOriginAllowed(origin => true);
     });
 });
 
