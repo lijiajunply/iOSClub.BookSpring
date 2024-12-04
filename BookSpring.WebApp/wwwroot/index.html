@@ -200,7 +200,7 @@
         </div>
         <div style="text-align: center; margin: 10px;">
             Created by <span class="g">iOS Club of XAUAT</span>
-<!--            <div class="loading-progress-text"></div>-->
+            <!--            <div class="loading-progress-text"></div>-->
         </div>
     </div>
 </div>
@@ -212,8 +212,16 @@
 </div>
 <script src="_framework/blazor.webassembly.js"></script>
 <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+<script src="Js/cos-js-sdk-v5.min.js"></script>
 <script src="Js/site.js"></script>
-<script>navigator.serviceWorker.register('service-worker.js');</script>
-</body>
+<script>
+    navigator.serviceWorker.register('service-worker.js');
+    if (window.location.hostname === "localhost") {
+        document.write('<script src="Js/config.dev.js"><\/script>');
+    } else {
+        document.write('<script src="Js/config.prod.js"><\/script>');
+    }
+</script>
 
+</body>
 </html>

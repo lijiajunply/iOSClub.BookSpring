@@ -1,0 +1,54 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using BookSpring.WebApp.Models
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.BookmarkAdd" Class="mr-3 mb-n1"/>
+            借阅书籍
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="@Book" OnValidSubmit="CloseServer">
+            <DataAnnotationsValidator/>
+            <MudTextField T="string?" @bind-Value="@Book.ReturnDate" For="@(() => Book.ReturnDate)" Format="yyyy-MM-dd"
+                          Label="归还时间" InputType="InputType.Date"/>
+            <div style="text-align: center;margin-top: 5px;margin-bottom: 5px;">
+                <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">借阅</MudButton>
+                <MudButton OnClick="Cancel">取消</MudButton>
+            </div>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] [NotNull] private MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] public BookModel Book { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        Book.LendDate = Book.ReturnDate = DateTime.Now.ToString("yyyy-MM-dd");
+        base.OnParametersSet();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+    
+    private void CloseServer()
+    {
+        if (string.IsNullOrEmpty(Book.ReturnDate))
+        {
+            Snackbar.Add("书籍名称未填",Severity.Info);
+            return;
+        }
+        MudDialog.Close(DialogResult.Ok(Book));
+    }
+}
+
+<style>
+    .mud-input-control{
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+</style>

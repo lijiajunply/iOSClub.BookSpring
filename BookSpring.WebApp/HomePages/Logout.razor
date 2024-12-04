@@ -1,0 +1,18 @@
+﻿@page "/Logout"
+@using BookSpring.WebApp.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider authStateProvider
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        var jwt = (JwtProvider)authStateProvider;
+        await jwt.Logout();
+        Snackbar.Add("注销成功", Severity.Success);
+        NavigationManager.NavigateTo("/",true);
+    }
+
+}

@@ -1,4 +1,69 @@
 ﻿@page "/"
+@inject NavigationManager Nav
 
 <PageTitle>主页 - iOS 图书馆</PageTitle>
 
+<MudContainer Class="mt-16">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">iLibrary</MudText>
+    <MudText Align="Align.Center">西建大iOS Club图书馆</MudText>
+    <MudGrid Class="mt-8">
+        <MudItem xs="12" sm="6" md="6">
+            <MudCard Elevation="25" Class="rounded-lg pb-4">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5" Align="Align.Center">iOS Club of XAUAT</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudList T="string" Class="mx-auto mt-4" Style="width:300px;">
+                        <MudListItem Icon="@Icons.Material.Filled.Apps">
+                            Apple ✖️ XAUAT
+                        </MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.Star">
+                            全校最大的科技类社团
+                        </MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.AddCircle">
+                            学编程搞项目玩数码，就来西建大iOS Club
+                        </MudListItem>
+                    </MudList>
+                </MudCardContent>
+                <MudCardActions Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               Size="Size.Large" Style="width:50%;"
+                               OnClick="@(() => Nav.NavigateTo("https://www.xauat.site"))">
+                        了解社团
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="6">
+            <MudCard Elevation="25" Class="rounded-lg pb-4">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5" Align="Align.Center">iLibrary</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudList T="string" Class="mx-auto mt-4" Style="width:300px;">
+                        <MudListItem Icon="@Icons.Material.Filled.LiveHelp">
+                            免费图书资源
+                        </MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.LiveHelp">
+                            电子/纸质，双重图书馆
+                        </MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.LiveHelp">
+                            支持iOS Club身份认证，注册iMember即可使用
+                        </MudListItem>
+                    </MudList>
+                </MudCardContent>
+                <MudCardActions Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               Size="Size.Large" Style="width:50%;"
+                               OnClick="@(() => Nav.NavigateTo("/Login"))">
+                        去看看
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

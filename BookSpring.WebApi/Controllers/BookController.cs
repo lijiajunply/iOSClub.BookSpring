@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BookSpring.DataLib;
@@ -32,7 +33,29 @@ public class BookController(
         return bookModel;
     }
 
-    // POST: api/Book
+    [TokenActionFilter]
+    [Authorize(Roles = "Admin")]
+    [HttpPost("/AddBooks")]
+    public async Task<ActionResult> Post(Stream content)
+    {
+        var member = httpContextAccessor.HttpContext?.User.GetUser();
+        if (member == null) return NotFound();
+
+        member = await context.Users
+            .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
+        if (member is not { Identity: "Admin" }) return NotFound();
+
+        var data = await JsonSerializer.DeserializeAsync<BookModel[]>(content) ?? [];
+
+        member.CreatedBooks.AddRange(data);
+
+        await context.SaveChangesAsync();
+        return Ok();
+    }
+
+    #region 图书管理
+
+    // POST: /Book
     [TokenActionFilter]
     [Authorize]
     [HttpPost]
@@ -56,11 +79,8 @@ public class BookController(
             }
             catch (DbUpdateException)
             {
-                if (BookModelExists(bookModel.Id))
-                {
+                if (await context.Books.AnyAsync(e => e.Id == bookModel.Id))
                     return Conflict();
-                }
-
                 throw;
             }
 
@@ -80,7 +100,7 @@ public class BookController(
         return book;
     }
 
-    // DELETE: api/Book/5
+    // DELETE: /Book/5
     [TokenActionFilter]
     [Authorize]
     [HttpDelete("{id}")]
@@ -106,8 +126,31 @@ public class BookController(
         return Ok();
     }
 
-    private bool BookModelExists(string id)
+    #endregion
+
+    [TokenActionFilter]
+    [Authorize]
+    [HttpPost("/Lend")]
+    public async Task<IActionResult> Lend(BookModel bookModel)
     {
-        return context.Books.Any(e => e.Id == id);
+        var member = httpContextAccessor.HttpContext?.User.GetUser();
+        if (member == null) return NotFound();
+        member = await context.Users
+            .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
+        if (member == null) return NotFound();
+
+        var book = await context.Books
+            .Include(x => x.LendTo)
+            .FirstOrDefaultAsync(x => x.Id == bookModel.Id);
+
+        if (book == null || book.CreatedById == member.Id || book.LendToId == member.Id)
+            return NotFound();
+
+        book.LendTo = member;
+        book.LendDate = bookModel.LendDate;
+        book.ReturnDate = bookModel.ReturnDate;
+
+        await context.SaveChangesAsync();
+        return Ok();
     }
 }

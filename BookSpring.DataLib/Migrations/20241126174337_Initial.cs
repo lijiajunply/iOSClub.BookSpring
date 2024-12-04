@@ -36,7 +36,7 @@ namespace BookSpring.DataLib.Migrations
                     ImageUrl = table.Column<string>(type: "varchar(64)", nullable: false),
                     Description = table.Column<string>(type: "varchar(10)", nullable: false),
                     Category = table.Column<string>(type: "varchar(10)", nullable: false),
-                    IsEBook = table.Column<bool>(type: "boolean", nullable: false)
+                    EBookUrl = table.Column<string>(type: "varchar(10)", nullable: false)
                 },
                 constraints: table =>
                 {

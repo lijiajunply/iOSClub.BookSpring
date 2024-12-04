@@ -18,7 +18,8 @@
                        OnClick="() => ThemeChange(!IsDarkTheme)" Color="Color.Inherit"/>
         @if (string.IsNullOrEmpty(Member.Id))
         {
-            <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Login"))" Icon="@Icons.Material.Rounded.Login"
+            <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Login"))"
+                           Icon="@Icons.Material.Rounded.Login"
                            Color="Color.Inherit" Edge="Edge.End"/>
         }
         else
@@ -26,13 +27,20 @@
             <MudMenu ActivationEvent="@MouseEvent.MouseOver"
                      AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                 <ActivatorContent>
-                    <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Dashboard"))" Icon="@Icons.Material.Rounded.Person"
+                    <MudIconButton OnClick="@(() => NavigationManager.NavigateTo("/Dashboard"))"
+                                   Icon="@Icons.Material.Rounded.Person"
                                    Color="Color.Inherit" Edge="Edge.End"/>
                 </ActivatorContent>
                 <ChildContent>
-                    <MudMenuItem>个人信息</MudMenuItem>
-                    <MudMenuItem>图书馆</MudMenuItem>
-                    <MudMenuItem>注销</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Rounded.Dashboard" Href="/Dashboard">
+                        个人面板
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Rounded.LocalLibrary" Href="/Library">
+                        图书馆
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Rounded.Logout" Href="/Logout">
+                        注销
+                    </MudMenuItem>
                 </ChildContent>
             </MudMenu>
         }

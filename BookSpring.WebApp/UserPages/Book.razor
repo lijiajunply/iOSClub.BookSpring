@@ -1,6 +1,208 @@
 ﻿@page "/Book/{Id}"
-<h3>Book</h3>
+@using System.Diagnostics.CodeAnalysis
+@using System.Net.Http.Headers
+@using BookSpring.WebApp.Dialogs
+@using BookSpring.WebApp.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient httpClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider authStateProvider
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+
+<MudGrid>
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+            <MudStack>
+                <MudText Typo="Typo.h5">基本信息</MudText>
+                <MudList T="string">
+                    <MudListItem Text="书籍名称" SecondaryText="@Data.Name"
+                                 Icon="@Icons.Material.Filled.Book"/>
+                    <MudListItem Text="简介" SecondaryText="@Data.Description"
+                                 Icon="@Icons.Material.Filled.Description"/>
+                </MudList>
+                <div>
+                    @foreach (var s in Data.Category.Split(","))
+                    {
+                        <MudChip OnClick="@(() => Nav.NavigateTo($"/Library/{s}"))"
+                                 Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
+                    }
+                </div>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+            <MudText Typo="Typo.h5">关于借阅/下载</MudText>
+            <br/>
+            @if (string.IsNullOrEmpty(Data.EBookUrl))
+            {
+                @if (string.IsNullOrEmpty(Data.LendToId))
+                {
+                    if (Data.CreatedById != Member.Id)
+                    {
+                        <MudButton Color="Color.Primary" OnClick="LendBook"
+                                   StartIcon="@Icons.Material.Rounded.BookmarkAdd">
+                            去借阅
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h6">现在还没被借走</MudText>
+                    }
+                }
+                else
+                {
+                    if (Data.LendToId == Member.Id)
+                    {
+                        <MudStack>
+                            <MudList T="string">
+                                <MudListItem Text="书籍名称" SecondaryText="@Data.LendDate"
+                                             Icon="@Icons.Material.Filled.CalendarMonth"/>
+                                <MudListItem Text="简介" SecondaryText="@Data.ReturnDate"
+                                             Icon="@Icons.Material.Filled.AccessTimeFilled"/>
+                            </MudList>
+                            <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Rounded.AssignmentReturn">
+                                现在就还书
+                            </MudButton>
+                        </MudStack>
+                    }
+                    else
+                    {
+                        <MudStack>
+                            <MudText Typo="Typo.h6">这本书已经被借走了！</MudText>
+                            <MudText>什么时候能借？</MudText>
+                            <MudText>@($"{Data.ReturnDate}以后")</MudText>
+                        </MudStack>
+                    }
+                }
+            }
+            else
+            {
+                <MudButton Color="Color.Primary" OnClick="Download"
+                           StartIcon="@Icons.Material.Rounded.Download">
+                    下载电子书
+                </MudButton>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (Data.CreatedById == Member.Id || Member.Identity == "Admin")
+{
+    <MudPaper Elevation="2" Class="mt-4">
+        <MudToolBar>
+            <MudText Typo="Typo.h6">操作</MudText>
+            <MudSpacer/>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FileUpload"
+                       Class="mr-5">
+                <input id="fileSelector" @onchange="updateImageDisplay" type="file" multiple
+                       style="left:-9999px;position:absolute;"/>
+                <label for="fileSelector">更换文件</label>
+            </MudButton>
+            <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="EditBook"/>
+            <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error"
+                           OnClick="Delete"/>
+        </MudToolBar>
+    </MudPaper>
+}
 
 @code {
     [Parameter] public string Id { get; set; } = "";
+
+    [CascadingParameter(Name = "Member")]
+    [NotNull]
+    public UserModel? Member { get; set; }
+
+    private BookModel Data { get; set; } = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var response = await httpClient.GetAsync($"http://localhost:5259/Book/{Id}");
+        Data = await response.Content.ReadFromJsonAsync<BookModel>() ?? new BookModel();
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task LendBook()
+    {
+        var options = new DialogOptions() { BackgroundClass = "my-dialog-class" };
+        var a = await DialogService.ShowAsync<LendBookDialog>("借阅书籍", options);
+        var result = await a.Result;
+
+        if (result is { Canceled: false })
+        {
+            if (result.Data is not BookModel book) return;
+            var jwt = (JwtProvider)authStateProvider;
+            var cookie = await jwt.GetCookie();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+            var response = await httpClient.PostAsJsonAsync("http://localhost:5259/Lend", book);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("借阅书籍成功", Severity.Success);
+                Data.LendDate = book.LendDate;
+                Data.ReturnDate = book.ReturnDate;
+                Data.LendToId = book.LendToId;
+            }
+        }
+    }
+
+    private async Task Download()
+    {
+        await JS.InvokeAsync<string>("fileDownload", Data.EBookUrl);
+    }
+
+    private async Task EditBook()
+    {
+        var parameters = new DialogParameters<AddBookDialog> { { x => x.Book, Data } };
+        var options = new DialogOptions() { BackgroundClass = "my-dialog-class" };
+        var a = await DialogService.ShowAsync<AddBookDialog>("删除书籍", parameters, options);
+        var result = await a.Result;
+
+        if (result is { Canceled: false })
+        {
+            if (result.Data is not BookModel book) return;
+            var jwt = (JwtProvider)authStateProvider;
+            var cookie = await jwt.GetCookie();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+            var response = await httpClient.PostAsJsonAsync("http://localhost:5259/Book", book);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("更改成功", Severity.Success);
+                Data.Name = book.Name;
+                Data.Description = book.Description;
+                Data.Category = book.Category;
+            }
+        }
+    }
+
+    private async Task Delete()
+    {
+        var jwt = (JwtProvider)authStateProvider;
+        var cookie = await jwt.GetCookie();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+        var response = await httpClient.DeleteAsync($"http://localhost:5259/Book/{Data.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("删除成功", Severity.Success);
+            Nav.NavigateTo("/Library");
+        }
+    }
+
+    private async Task updateImageDisplay(ChangeEventArgs arg)
+    {
+        var url = await JS.InvokeAsync<string>("updateImageDisplay", Data.EBookUrl);
+        var jwt = (JwtProvider)authStateProvider;
+        var cookie = await jwt.GetCookie();
+        Data.EBookUrl = url;
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+        var response = await httpClient.PostAsJsonAsync("http://localhost:5259/Book", Data);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("更换成功", Severity.Success);
+        }
+    }
+
 }

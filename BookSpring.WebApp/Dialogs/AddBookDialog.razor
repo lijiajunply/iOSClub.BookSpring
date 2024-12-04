@@ -1,59 +1,74 @@
-﻿@using BookSpring.WebApp.Models
-@inject HttpClient client
+﻿@using System.Diagnostics.CodeAnalysis
+@using BookSpring.WebApp.Models
+@inject IJSRuntime Js
+@inject ISnackbar Snackbar
 
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-3 mb-n1"/>
+            <MudIcon Icon="@Icons.Material.Filled.BookmarkAdd" Class="mr-3 mb-n1"/>
             添加图书
         </MudText>
     </TitleContent>
     <DialogContent>
-        <EditForm Model="@Book" OnValidSubmit="DeleteServer">
+        <EditForm Model="@Book" OnValidSubmit="CloseServer">
             <DataAnnotationsValidator/>
-            <MudCard>
-                <MudCardContent>
-                    <MudTextField @bind-Value="@Book.Name" For="@(() => Book.Name)" Label="书籍名称"/>
-                    <MudTextField @bind-Value="@Book.Description" For="@(() => Book.Description)" Label="简介"/>
-                    <MudTextField @bind-Value="@Book.Category" For="@(() => Book.Category)" Label="标签"/>
-                    <MudSwitch Label="纸质/电子" @bind-Value="@Book.IsEBook" For="@(() => Book.IsEBook)" Color="Color.Primary"/>
-                    @if (Book.IsEBook)
-                    {
-                        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
-                            <ActivatorContent>
-                                <MudButton Variant="Variant.Filled"
-                                           Color="Color.Primary"
-                                           StartIcon="@Icons.Material.Filled.CloudUpload">
-                                    Upload Files
-                                </MudButton>
-                            </ActivatorContent>
-                        </MudFileUpload>
-                    }
-                    <div>
-                        <MudButton OnClick="Cancel">取消</MudButton>
-                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">添加</MudButton>
-                    </div>
-                </MudCardContent>
-            </MudCard>
+            <MudTextField @bind-Value="@Book.Name" For="@(() => Book.Name)" Label="书籍名称"/>
+            <MudTextField @bind-Value="@Book.Description" For="@(() => Book.Description)" Label="简介"/>
+            <MudTextField @bind-Value="@Book.Category" For="@(() => Book.Category)" Label="标签"/>
+            <MudSwitch Label="纸质/电子" @bind-Value="@IsEBook" Color="Color.Primary"/>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       style="@(IsEBook ? "" : "display:none")"
+                       StartIcon="@Icons.Material.Filled.CloudUpload">
+                <input id="fileSelector" type="file" multiple style="left:-9999px;position:absolute;"/>
+                <label for="fileSelector">上传电子书</label>
+            </MudButton>
+            <div style="text-align: center;margin-top: 5px;margin-bottom: 5px;">
+                <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">添加</MudButton>
+                <MudButton OnClick="Cancel">取消</MudButton>
+            </div>
         </EditForm>
     </DialogContent>
 </MudDialog>
 
 @code {
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] [NotNull] private MudDialogInstance? MudDialog { get; set; }
 
     [Parameter] public BookModel Book { get; set; } = new();
+    private bool IsEBook;
 
     private void Cancel() => MudDialog.Cancel();
 
-    private void DeleteServer()
+    private async Task CloseServer()
     {
+        if (string.IsNullOrEmpty(Book.Name))
+        {
+            Snackbar.Add("书籍名称未填", Severity.Info);
+            return;
+        }
+
+        Book.EBookUrl = IsEBook switch
+        {
+            true when string.IsNullOrEmpty(Book.EBookUrl) => await Js.InvokeAsync<string>("UploadFile"),
+            false when !string.IsNullOrEmpty(Book.EBookUrl) => "",
+            _ => Book.EBookUrl
+        };
+
         MudDialog.Close(DialogResult.Ok(Book));
     }
 
-    private async Task UploadFiles(IBrowserFile file)
+    protected override void OnParametersSet()
     {
-        
+        IsEBook = !string.IsNullOrEmpty(Book.EBookUrl);
+        base.OnParametersSet();
     }
 
 }
+
+<style>
+    .mud-input-control {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+</style>

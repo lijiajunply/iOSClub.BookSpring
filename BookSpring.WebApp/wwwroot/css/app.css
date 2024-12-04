@@ -26,3 +26,7 @@
 .blazor-error-boundary::after {
     content: "An error has occurred."
 }
+
+.my-dialog-class {
+    backdrop-filter: blur(10px);
+}

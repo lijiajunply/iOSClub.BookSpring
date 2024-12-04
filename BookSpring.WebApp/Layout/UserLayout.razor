@@ -5,7 +5,8 @@
 
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="@((e) => DrawerToggle())"/>
         <MudButton Href="/"
                    Variant="Variant.Text"
                    Color="Color.Inherit"
@@ -24,17 +25,26 @@
                                Color="Color.Inherit" Edge="Edge.End"/>
             </ActivatorContent>
             <ChildContent>
-                <MudMenuItem>个人信息</MudMenuItem>
-                <MudMenuItem>图书馆</MudMenuItem>
-                <MudMenuItem>注销</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Rounded.Dashboard" Href="/Dashboard">
+                    个人面板
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Rounded.LocalLibrary" Href="/Library">
+                    图书馆
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Rounded.Logout" Href="/Logout">
+                    注销
+                </MudMenuItem>
             </ChildContent>
         </MudMenu>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <MudNavMenu Rounded Class="pa-2" Margin="Margin.Normal" Color="Color.Primary">
-            <MudNavLink Icon="@Icons.Material.Rounded.Dashboard" Href="/Dashboard" Match="NavLinkMatch.All">面板</MudNavLink>
-            <MudNavLink Icon="@Icons.Material.Rounded.LibraryBooks" Href="/Library" Match="NavLinkMatch.Prefix">图书馆</MudNavLink>
-            <MudNavLink Icon="@Icons.Material.Rounded.Person" Href="/UserCenter" Match="NavLinkMatch.Prefix">个人中心</MudNavLink>
+            <MudNavLink Icon="@Icons.Material.Rounded.Dashboard" Href="/Dashboard" Match="NavLinkMatch.All">
+                个人面板
+            </MudNavLink>
+            <MudNavLink Icon="@Icons.Material.Rounded.LibraryBooks" Href="/Library" Match="NavLinkMatch.Prefix">
+                图书馆
+            </MudNavLink>
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent>

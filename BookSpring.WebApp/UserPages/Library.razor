@@ -1,5 +1,10 @@
-﻿@page "/Library"
+﻿@page "/Library/{Key?}"
+@using System.Diagnostics.CodeAnalysis
 @using System.Net.Http.Headers
+@using System.Text
+@using System.Text.Encodings.Web
+@using System.Text.Json
+@using System.Text.Unicode
 @using BookSpring.WebApp.Dialogs
 @using BookSpring.WebApp.Models
 @using Microsoft.AspNetCore.Components.Authorization
@@ -8,6 +13,7 @@
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider authStateProvider
 @inject ISnackbar Snackbar
+@inject IJSRuntime JS
 
 <PageTitle>所有图书 - iLibrary</PageTitle>
 
@@ -15,13 +21,27 @@
     <MudToolBar>
         <MudText Typo="Typo.h6">所有书籍</MudText>
         <MudSpacer/>
+        @if (Member.Identity == "Admin")
+        {
+            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                <ActivatorContent>
+                    <MudIconButton Icon="@Icons.Material.Filled.Upload"/>
+                </ActivatorContent>
+            </MudFileUpload>
+            <MudIconButton OnClick="JsonDownload" Icon="@Icons.Material.Filled.CloudDownload"/>
+        }
         <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>
     </MudToolBar>
-    <MudTable T="BookModel" FixedHeader Items="@Books" Hover="true"
+    <MudTable T="BookModel" Hover
+              Items="@Books"
               Class="mt-5"
+              RowEditCommit="i => Task.Run(() => EditDoneAsync(i))"
+              CanCancelEdit="true"
+              ReadOnly="@(Member.Identity != "Admin")"
+              EditTrigger="TableEditTrigger.EditButton"
               Filter="new Func<BookModel, bool>(FilterFunc)"
               Breakpoint="Breakpoint.Sm"
-              RowClass="cursor-pointer" OnRowClick="RowClickEvent">
+              RowClass="cursor-pointer">
         <ToolBarContent>
             @if (SearchType == "IsEBook")
             {
@@ -41,28 +61,55 @@
             </MudSelect>
         </ToolBarContent>
         <HeaderContent>
-            <MudTh>名称</MudTh>
-            <MudTh>标签</MudTh>
-            <MudTh>是否为电子书</MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Name)">名称</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Category)">标签</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>string.IsNullOrEmpty(x.EBookUrl))">
+                    是否为电子书
+                </MudTableSortLabel>
+            </MudTh>
+            <MudTh>书籍详情</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="名称">@context.Name</MudTd>
-            <MudTd DataLabel="标签">@context.Category</MudTd>
-            <MudTd DataLabel="是否为电子书">@context.IsEBook</MudTd>
+            <MudTd DataLabel="标签">
+                @foreach (var s in context.Category.Split(","))
+                {
+                    <MudChip OnClick="@(() => Nav.NavigateTo($"/Library/{s}"))"
+                             Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="电子/纸质">@(string.IsNullOrEmpty(context.EBookUrl) ? "纸质书" : "电子书")</MudTd>
+            <MudTd DataLabel="书籍详情">
+                <MudButton OnClick="@(() => Nav.NavigateTo($"/Book/{context.Id}"))"
+                           StartIcon="@Icons.Material.Filled.OpenInNew">书籍详情
+                </MudButton>
+            </MudTd>
         </RowTemplate>
         <RowEditingTemplate>
-            <MudTd DataLabel="名称">@context.Name</MudTd>
+            <MudTd DataLabel="名称">
+                <MudTextField @bind-Value="context.Name" Required/>
+            </MudTd>
             <MudTd DataLabel="标签">
                 <MudTextField @bind-Value="context.Category" Required/>
             </MudTd>
             <MudTd DataLabel="是否为电子书">
-                <MudTextField @bind-Value="context.Name" Required/>
+                <MudTextField @bind-Value="context.EBookUrl"/>
+            </MudTd>
+            <MudTd DataLabel="书籍详情">
+                <MudButton OnClick="@(() => Nav.NavigateTo($"/Book/{context.Id}"))"
+                           StartIcon="@Icons.Material.Filled.OpenInNew">书籍详情
+                </MudButton>
             </MudTd>
         </RowEditingTemplate>
         <PagerContent>
             <MudTablePager PageSizeOptions="new[] { 10, 25, int.MaxValue }"
                            RowsPerPageString="每页行数："
-                           InfoFormat="{first_item}-{last_item}, 共 {all_items}本书"
+                           InfoFormat="{first_item}-{last_item}, 共{all_items}本书"
                            AllItemsText="全部"
                            HorizontalAlignment="@HorizontalAlignment.Center"/>
         </PagerContent>
@@ -70,41 +117,73 @@
 </MudPaper>
 
 @code {
-    private List<BookModel> Books { get; set; } = [];
+
+    [CascadingParameter(Name = "Member")]
+    [NotNull]
+    public UserModel? Member { get; set; }
+
+    private List<BookModel> Books { get; } = [];
+    private BookModel[] AllBooks { get; set; } = [];
     private string SearchString { get; set; } = "";
     private string SearchType { get; set; } = "书名";
     public bool IsEBookSwitch { get; set; } = true;
+    [Parameter] public string Key { get; set; } = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Books.Clear();
+        if (AllBooks.Length == 0)
+        {
+            var response = await httpClient.GetAsync("http://localhost:5259/Book");
+            AllBooks = await response.Content.ReadFromJsonAsync<BookModel[]>() ?? [];
+        }
+
+        if (!string.IsNullOrEmpty(Key))
+        {
+            Books.AddRange(AllBooks.Where(x => x.Category.Contains(Key, StringComparison.CurrentCultureIgnoreCase)));
+            return;
+        }
+
+        Books.AddRange(AllBooks);
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        if (AllBooks.Length != 0) return;
         var response = await httpClient.GetAsync("http://localhost:5259/Book");
-        Books = await response.Content.ReadFromJsonAsync<List<BookModel>>() ?? [];
-    }
-
-    private void RowClickEvent(TableRowClickEventArgs<BookModel> tableRowClickEventArgs)
-    {
-        if (tableRowClickEventArgs.Item != null)
-        {
-            Nav.NavigateTo($"/Book/{tableRowClickEventArgs.Item.Id}");
-        }
+        AllBooks = await response.Content.ReadFromJsonAsync<BookModel[]>() ?? [];
     }
 
     private bool FilterFunc(BookModel element)
     {
-        if (string.IsNullOrWhiteSpace(SearchString))
-            return true;
+        if (string.IsNullOrWhiteSpace(SearchString) && SearchType != "IsEBook") return true;
         return SearchType switch
         {
-            "书名" => element.Name.Contains(SearchString, StringComparison.OrdinalIgnoreCase),
-            "标签" => element.Category.Contains(SearchString, StringComparison.OrdinalIgnoreCase),
-            "IsEBook" => element.IsEBook == IsEBookSwitch,
+            "书名" => element.Name.Contains(SearchString, StringComparison.CurrentCultureIgnoreCase),
+            "标签" => element.Category.Contains(SearchString, StringComparison.CurrentCultureIgnoreCase),
+            "IsEBook" => !string.IsNullOrEmpty(element.EBookUrl) == IsEBookSwitch,
             _ => false
         };
     }
 
+    private async Task EditDoneAsync(object? obj)
+    {
+        if (obj is not BookModel book) return;
+        var jwt = (JwtProvider)authStateProvider;
+        var cookie = await jwt.GetCookie();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+        var response = await httpClient.PostAsJsonAsync("http://localhost:5259/Book", book);
+        if (response.IsSuccessStatusCode)
+        {
+            var newBook = await response.Content.ReadFromJsonAsync<BookModel>();
+            if (newBook is null) return;
+            Snackbar.Add("更改书籍成功", Severity.Success);
+        }
+    }
+
     private async Task OpenDialogAsync()
     {
-        var options = new DialogOptions { BackgroundClass = "my-custom-class" };
+        var options = new DialogOptions(){BackgroundClass="my-dialog-class"};
         var a = await DialogService.ShowAsync<AddBookDialog>("添加书籍", options);
         var result = await a.Result;
 
@@ -125,10 +204,30 @@
         }
     }
 
-}
+    private async Task UploadFiles(IBrowserFile? arg)
+    {
+        if (arg == null) return;
+        var jwt = (JwtProvider)authStateProvider;
+        var cookie = await jwt.GetCookie();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+        var response = await httpClient.PostAsync("http://localhost:5259/AddBooks", new StreamContent(arg.OpenReadStream()));
 
-<style>
-    .my-custom-class {
-        backdrop-filter: blur(10px);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("添加书籍成功", Severity.Success);
+        }
     }
-</style>
+
+    private async Task JsonDownload()
+    {
+        var options = new JsonSerializerOptions
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+        };
+        var jsonString = JsonSerializer.Serialize(AllBooks, options);
+        var data = Encoding.UTF8.GetBytes(jsonString);
+
+        await JS.InvokeVoidAsync("jsSaveAsFile", "所有图书.json", Convert.ToBase64String(data));
+    }
+
+}

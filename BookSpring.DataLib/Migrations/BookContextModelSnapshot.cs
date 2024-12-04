@@ -32,12 +32,13 @@ namespace BookSpring.DataLib.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(10)");
 
+                    b.Property<string>("EBookUrl")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("varchar(64)");
-
-                    b.Property<bool>("IsEBook")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("LendDate")
                         .HasColumnType("varchar(10)");

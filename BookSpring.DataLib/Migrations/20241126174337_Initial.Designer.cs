@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookSpring.DataLib.Migrations
 {
     [DbContext(typeof(BookContext))]
-    [Migration("20241121165350_Initial")]
+    [Migration("20241126174337_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -35,12 +35,13 @@ namespace BookSpring.DataLib.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(10)");
 
+                    b.Property<string>("EBookUrl")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("varchar(64)");
-
-                    b.Property<bool>("IsEBook")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("LendDate")
                         .HasColumnType("varchar(10)");
