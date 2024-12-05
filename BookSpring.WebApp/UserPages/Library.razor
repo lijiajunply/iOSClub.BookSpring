@@ -23,7 +23,8 @@
         <MudSpacer/>
         @if (Member.Identity == "Admin")
         {
-            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+            <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Rounded.UploadFile" OnClick="UploadFiles"/>
+            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile">
                 <ActivatorContent>
                     <MudIconButton Icon="@Icons.Material.Filled.Upload"/>
                 </ActivatorContent>
@@ -32,6 +33,7 @@
         }
         <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>
     </MudToolBar>
+    <meter min="0" max="1" id="meter" style="@(IsUpload ? "width:100%" : "display: none;width:100%")" value="0"></meter>
     <MudTable T="BookModel" Hover
               Items="@Books"
               Class="mt-5"
@@ -128,6 +130,7 @@
     private string SearchType { get; set; } = "书名";
     public bool IsEBookSwitch { get; set; } = true;
     [Parameter] public string Key { get; set; } = "";
+    private bool IsUpload { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -190,6 +193,7 @@
         if (result is { Canceled: false })
         {
             if (result.Data is not BookModel book) return;
+            IsUpload = !string.IsNullOrEmpty(book.EBookUrl);
             var jwt = (JwtProvider)authStateProvider;
             var cookie = await jwt.GetCookie();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
@@ -204,7 +208,7 @@
         }
     }
 
-    private async Task UploadFiles(IBrowserFile? arg)
+    private async Task UploadFile(IBrowserFile? arg)
     {
         if (arg == null) return;
         var jwt = (JwtProvider)authStateProvider;
@@ -233,6 +237,33 @@
         var data = Encoding.UTF8.GetBytes(jsonString);
 
         await JS.InvokeVoidAsync("jsSaveAsFile", "所有图书.json", Convert.ToBase64String(data));
+    }
+
+    private async Task UploadFiles()
+    {
+        var options = new DialogOptions() { BackgroundClass = "my-dialog-class" };
+        var a = await DialogService.ShowAsync<AddBooksFromFile>("添加书籍", options);
+        var result = await a.Result;
+
+        if (result is { Canceled: false })
+        {
+            if (result.Data is not string[] data) return;
+            IsUpload = true;
+            var jwt = (JwtProvider)authStateProvider;
+            var cookie = await jwt.GetCookie();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+            foreach (var s in data)
+            {
+                var name = Path.GetFileNameWithoutExtension(s);
+                var book = new BookModel() { Name = name, EBookUrl = $"ilib/{s}", Description = name, Category = name };
+                var response = await httpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/Book", book);
+                if (!response.IsSuccessStatusCode) continue;
+                var newBook = await response.Content.ReadFromJsonAsync<BookModel>();
+                if (newBook is null) return;
+                Snackbar.Add("添加书籍成功", Severity.Success);
+                Books.Add(newBook);
+            }
+        }
     }
 
 }

@@ -1,0 +1,38 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using System.Text.Json
+@inject IJSRuntime Js
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.BookmarkAdd" Class="mr-3 mb-n1"/>
+            添加图书
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            <input id="fileSelector" type="file" multiple style="left:-9999px;position:absolute;"/>
+            <label for="fileSelector">上传电子书</label>
+        </MudButton>
+        <div style="text-align: center;margin-top: 5px;margin-bottom: 5px;">
+            <MudButton OnClick="CloseServer" Color="Color.Primary">添加</MudButton>
+            <MudButton OnClick="Cancel">取消</MudButton>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] [NotNull] private MudDialogInstance? MudDialog { get; set; }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task CloseServer()
+    {
+        var data = await Js.InvokeAsync<string>("UploadFiles");
+        Console.WriteLine(data);
+        var arr = JsonSerializer.Deserialize<string[]>(data) ?? [];
+        MudDialog.Close(DialogResult.Ok(arr));
+    }
+}

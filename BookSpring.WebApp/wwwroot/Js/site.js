@@ -51,26 +51,35 @@ async function copyText(content) {
     }
 }
 
+function GetCos() {
+    const now = Math.floor(Date.now() / 1000);
+    return new COS({
+        SecretId: window.config.SecretId,
+        SecretKey: window.config.SecretKey,
+        StartTime: now,
+        ExpiredTime: now + 1800,
+    });
+}
+
 async function UploadFile() {
     const file = document.getElementById('fileSelector').files[0];
     if (!file) {
         return "";
     }
-    const now = Math.floor(Date.now() / 1000);
-    const cos = new COS({
-        SecretId: window.config.SecretId, // sts服务下发的临时 secretId
-        SecretKey: window.config.SecretKey, // sts服务下发的临时 secretKey
-        StartTime: now, // 建议传入服务端时间，可避免客户端时间不准导致的签名错误
-        ExpiredTime: now + 1800, // 临时密钥过期时间
-    });
+    const meter = document.getElementById('meter')
+    const cos = GetCos()
     cos.uploadFile({
-        Bucket: window.config.Bucket, /* 填写自己的 bucket，必须字段 */
-        Region: window.config.Region,     /* 存储桶所在地域，必须字段 */
-        Key: 'ilib/' + file.name,              /* 存储在桶里的对象键（例如:1.jpg，a/b/test.txt，图片.jpg）支持中文，必须字段 */
-        Body: file, // 上传文件对象
-        SliceSize: 1024 * 1024 * 5,     /* 触发分块上传的阈值，超过5MB使用分块上传，小于5MB使用简单上传。可自行设置，非必须 */
+        Bucket: window.config.Bucket,
+        Region: window.config.Region,
+        Key: 'ilib/' + file.name,
+        Body: file,
+        SliceSize: 1024 * 1024 * 5,
         onProgress: function (progressData) {
             console.log(JSON.stringify(progressData));
+            meter.value = progressData.percent;
+            if (progressData.percent === 1) {
+                meter.style.display = 'none';
+            }
         }
     }, function (err, _) {
         if (err) {
@@ -83,18 +92,38 @@ async function UploadFile() {
     return 'ilib/' + file.name;
 }
 
+function UploadFiles() {
+    const files = document.getElementById('fileSelector').files;
+    const cos = GetCos()
+    let arr = [];
+    const meter = document.getElementById('meter')
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        cos.uploadFile({
+            Bucket: window.config.Bucket,
+            Region: window.config.Region,
+            Key: 'ilib/' + file.name,
+            Body: file,
+            SliceSize: 1024 * 1024 * 5,
+            onProgress: function (progressData) {
+                console.log(JSON.stringify(progressData));
+                meter.value = progressData.percent;
+                if (progressData.percent === 1) {
+                    meter.value = 0
+                }
+            }
+        })
+        arr.push(file.name);
+    }
+    return JSON.stringify(arr);
+}
+
 function fileDownload(url) {
-    const now = Math.floor(Date.now() / 1000);
-    const cos = new COS({
-        SecretId: window.config.SecretId, // sts服务下发的临时 secretId
-        SecretKey: window.config.SecretKey, // sts服务下发的临时 secretKey
-        StartTime: now, // 建议传入服务端时间，可避免客户端时间不准导致的签名错误
-        ExpiredTime: now + 1800, // 临时密钥过期时间
-    });
+    const cos = GetCos()
     cos.getObjectUrl({
-        Bucket: window.config.Bucket, /* 填写自己的 bucket，必须字段 */
-        Region: window.config.Region,     /* 存储桶所在地域，必须字段 */
-        Key: url,              /* 存储在桶里的对象键（例如1.jpg，a/b/test.txt），必须字段 */
+        Bucket: window.config.Bucket,
+        Region: window.config.Region,
+        Key: url,
     }, function (err, data) {
         if (err) return console.log(err);
         const downloadUrl = data.Url + (data.Url.indexOf('?') > -1 ? '&' : '?') + 'response-content-disposition=attachment';
@@ -103,18 +132,12 @@ function fileDownload(url) {
 }
 
 function deleteFile(url) {
-    const now = Math.floor(Date.now() / 1000);
-    const cos = new COS({
-        SecretId: window.config.SecretId, // sts服务下发的临时 secretId
-        SecretKey: window.config.SecretKey, // sts服务下发的临时 secretKey
-        StartTime: now, // 建议传入服务端时间，可避免客户端时间不准导致的签名错误
-        ExpiredTime: now + 1800, // 临时密钥过期时间
-    });
+    const cos = GetCos()
     cos.deleteObject({
-        Bucket: window.config.Bucket, /* 填写自己的 bucket，必须字段 */
-        Region: window.config.Region,     /* 存储桶所在地域，必须字段 */
-        Key: url,              /* 存储在桶里的对象键（例如1.jpg，a/b/test.txt），必须字段 */
-    }, function(err, data) {
+        Bucket: window.config.Bucket,
+        Region: window.config.Region,
+        Key: url,
+    }, function (err, data) {
         console.log(err || data);
     });
 }
@@ -126,17 +149,11 @@ function updateImageDisplay(url) {
     }
     let fileName = 'ilib/' + file.name;
     deleteFile(url)
-    const now = Math.floor(Date.now() / 1000);
-    const cos = new COS({
-        SecretId: window.config.SecretId, 
-        SecretKey: window.config.SecretKey,
-        StartTime: now, 
-        ExpiredTime: now + 1800, 
-    });
+    const cos = GetCos()
     cos.uploadFile({
         Bucket: window.config.Bucket,
-        Region: window.config.Region, 
-        Key: fileName,      
+        Region: window.config.Region,
+        Key: fileName,
         Body: file,
         SliceSize: 1024 * 1024 * 5,
         onProgress: function (progressData) {
@@ -149,6 +166,6 @@ function updateImageDisplay(url) {
             console.log('上传成功');
         }
     });
-    
+
     return fileName;
 }
