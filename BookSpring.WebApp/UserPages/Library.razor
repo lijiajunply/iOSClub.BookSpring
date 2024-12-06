@@ -31,7 +31,10 @@
             </MudFileUpload>
             <MudIconButton OnClick="JsonDownload" Icon="@Icons.Material.Filled.CloudDownload"/>
         }
-        <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>
+        @if (!string.IsNullOrEmpty(Member.Id))
+        {
+            <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>   
+        }
     </MudToolBar>
     <meter min="0" max="1" id="meter" style="@(IsUpload ? "width:100%" : "display: none;width:100%")" value="0"></meter>
     <MudTable T="BookModel" Hover

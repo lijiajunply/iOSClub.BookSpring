@@ -25,12 +25,24 @@
                                Color="Color.Inherit" Edge="Edge.End"/>
             </ActivatorContent>
             <ChildContent>
-                <MudMenuItem Icon="@Icons.Material.Rounded.Dashboard" Href="/Dashboard">
-                    个人面板
-                </MudMenuItem>
+                @if (!string.IsNullOrEmpty(Member.Id))
+                {
+                    <MudMenuItem Icon="@Icons.Material.Rounded.Dashboard" Href="/Dashboard">
+                        个人面板
+                    </MudMenuItem>   
+                }
                 <MudMenuItem Icon="@Icons.Material.Rounded.LocalLibrary" Href="/Library">
                     图书馆
                 </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Rounded.Category" Href="/Category">
+                    书籍列表
+                </MudMenuItem>
+                @if (Member.Identity == "Admin")
+                {
+                    <MudMenuItem Icon="@Icons.Material.Rounded.AdminPanelSettings" Href="/Admin">
+                        数据面板
+                    </MudMenuItem>
+                }
                 <MudMenuItem Icon="@Icons.Material.Rounded.Logout" Href="/Logout">
                     注销
                 </MudMenuItem>
@@ -39,15 +51,31 @@
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <MudNavMenu Rounded Class="pa-2" Margin="Margin.Normal" Color="Color.Primary">
-            <MudNavLink Icon="@Icons.Material.Rounded.Dashboard" Href="/Dashboard" Match="NavLinkMatch.All">
-                个人面板
-            </MudNavLink>
+            @if (!string.IsNullOrEmpty(Member.Id))
+            {
+                <MudNavLink Icon="@Icons.Material.Rounded.Dashboard" Href="/Dashboard" Match="NavLinkMatch.All">
+                    个人面板
+                </MudNavLink>   
+            }
             <MudNavLink Icon="@Icons.Material.Rounded.LibraryBooks" Href="/Library" Match="NavLinkMatch.Prefix">
                 图书馆
             </MudNavLink>
             <MudNavLink Icon="@Icons.Material.Rounded.Category" Href="/Category" Match="NavLinkMatch.Prefix">
                 书籍列表
             </MudNavLink>
+            @if (Member.Identity == "Admin")
+            {
+                <MudNavLink Icon="@Icons.Material.Rounded.AdminPanelSettings" Href="/Admin" 
+                            Match="NavLinkMatch.Prefix">
+                    数据面板
+                </MudNavLink>
+            }
+            @if (!string.IsNullOrEmpty(Member.Id))
+            {
+                <MudNavLink Icon="@Icons.Material.Rounded.Logout" Href="/Logout" Match="NavLinkMatch.Prefix">
+                    注销
+                </MudNavLink>   
+            }
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent>
