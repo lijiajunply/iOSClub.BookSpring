@@ -176,12 +176,14 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        IsOK = false;
         if (string.IsNullOrEmpty(Key))
         {
             Categories = await httpClient.GetFromJsonAsync<List<CategoryModel>>($"{DataStatic.BaseUrl}/Category") ?? [];
             CategoryList = Categories.ToArray();
             List = CategoryList.GroupBy(x => x.Type);
             IsOK = true;
+            Console.WriteLine("加载成功");
             return;
         }
 
@@ -190,6 +192,7 @@ else
         if (string.IsNullOrEmpty(Key)) return;
         CategoryData.Books = await httpClient.GetFromJsonAsync<List<BookModel>>($"{DataStatic.BaseUrl}/GetCategoryBook/{Key.GetUrl()}") ?? [];
         IsOK = true;
+        Console.WriteLine("加载成功");
     }
 
     private void Search(string key)

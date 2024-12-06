@@ -142,6 +142,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        IsOK = false;
         if (Books.Count != 0)
         {
             IsOK = true;
@@ -151,6 +152,7 @@
         var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Book");
         Books = await response.Content.ReadFromJsonAsync<List<BookModel>>() ?? [];
         IsOK = true;
+        Console.WriteLine("加载成功");
     }
 
     private bool FilterFunc(BookModel element)
