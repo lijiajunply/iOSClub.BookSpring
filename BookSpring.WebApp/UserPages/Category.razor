@@ -30,7 +30,6 @@
                             <MudCard>
                                 <MudCardContent>
                                     <MudText>@context.Name</MudText>
-                                    <MudText Typo="Typo.body2">@context.Description</MudText>
                                 </MudCardContent>
                                 <MudCardActions>
                                     <MudButton OnClick="@(() => Nav.NavigateTo($"/Category/{context.Name.GetUrl()}"))"
@@ -41,6 +40,14 @@
                         </MudItem>
                     }
                 </MudGrid>
+                if (IsOK)
+                {
+                    continue;
+                }
+
+                <MudSkeleton/>
+                <MudSkeleton/>
+                <MudSkeleton/>
             }
         }
         else
@@ -52,7 +59,6 @@
                         <MudCard>
                             <MudCardContent>
                                 <MudText>@item.Name</MudText>
-                                <MudText Typo="Typo.body2">@item.Description</MudText>
                             </MudCardContent>
                             <MudCardActions>
                                 <MudButton OnClick="@(() => Nav.NavigateTo($"/Category/{item.Name.GetUrl()}"))"
@@ -73,12 +79,20 @@ else
             <MudToolBar>
                 <div>
                     <MudText Typo="Typo.h6">@($"书籍列表 - {Key}")</MudText>
-                    <MudText Typo="Typo.subtitle2">@CategoryData.Description</MudText>
-                    <MudChip
-                        OnClick="@(() => Nav.NavigateTo($"/Category#{(string.IsNullOrEmpty(CategoryData.Type) ? "其他" : CategoryData.Type)}"))"
-                        Size="Size.Small" Label="true" T="string" Color="Color.Primary">
-                        @CategoryData.Type
-                    </MudChip>
+                    @if (IsOK || !string.IsNullOrEmpty(CategoryData.Type))
+                    {
+                        <MudText Typo="Typo.subtitle2">@CategoryData.Description</MudText>
+                        <MudChip
+                            OnClick="@(() => Nav.NavigateTo($"/Category#{(string.IsNullOrEmpty(CategoryData.Type) ? "其他" : CategoryData.Type)}"))"
+                            Size="Size.Small" Label="true" T="string" Color="Color.Primary">
+                            @CategoryData.Type
+                        </MudChip>
+                    }
+                    else if (!IsOK)
+                    {
+                        <MudSkeleton Width="60px"/>
+                        <MudSkeleton Width="30px"/>
+                    }
                 </div>
                 <MudSpacer/>
                 @if (Member.Identity == "Admin")
@@ -109,6 +123,14 @@ else
                         </MudTableSortLabel>
                     </MudTh>
                     <MudTh>书籍详情</MudTh>
+                    @if (!IsOK)
+                    {
+                        <MudTd>
+                            <MudSkeleton/>
+                            <MudSkeleton/>
+                            <MudSkeleton/>
+                        </MudTd>
+                    }
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="名称">@context.Name</MudTd>
@@ -150,6 +172,7 @@ else
     private CategoryModel[] CategoryList { get; set; } = [];
     private string SearchKey { get; set; } = "";
     private IEnumerable<IGrouping<string?, CategoryModel>> List { get; set; } = [];
+    private bool IsOK { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -158,6 +181,7 @@ else
             Categories = await httpClient.GetFromJsonAsync<List<CategoryModel>>($"{DataStatic.BaseUrl}/Category") ?? [];
             CategoryList = Categories.ToArray();
             List = CategoryList.GroupBy(x => x.Type);
+            IsOK = true;
             return;
         }
 
@@ -165,6 +189,7 @@ else
         CategoryData = await httpClient.GetFromJsonAsync<CategoryModel>($"{DataStatic.BaseUrl}/Category/{Key.GetUrl()}") ?? new CategoryModel();
         if (string.IsNullOrEmpty(Key)) return;
         CategoryData.Books = await httpClient.GetFromJsonAsync<List<BookModel>>($"{DataStatic.BaseUrl}/GetCategoryBook/{Key.GetUrl()}") ?? [];
+        IsOK = true;
     }
 
     private void Search(string key)

@@ -87,15 +87,6 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine(e.Message);
     }
 
-    if (context.Categories.Any())
-    {
-        var categories = await context.Categories.ToListAsync();
-        foreach (var category in categories)
-        {
-            category.Type = "iOS编程资料";
-        }
-    }
-
     await context.SaveChangesAsync();
     await context.DisposeAsync();
 }

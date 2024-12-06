@@ -9,7 +9,7 @@ public static class DataStatic
 #if DEBUG
             return "http://localhost:5259";
 #else
-      return "https://book.hnd1.zeabur.app";
+      return "https://libapi.xauat.site";
 #endif
         }
     }
