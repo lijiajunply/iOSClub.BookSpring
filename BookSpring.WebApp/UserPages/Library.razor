@@ -214,7 +214,12 @@
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-        var jsonString = JsonSerializer.Serialize(Books, options);
+        var noCategories = Books.Select(x =>
+        {
+            x.Categories.Clear();
+            return x;
+        });
+        var jsonString = JsonSerializer.Serialize(noCategories, options);
         var data = Encoding.UTF8.GetBytes(jsonString);
 
         await JS.InvokeVoidAsync("jsSaveAsFile", "所有图书.json", Convert.ToBase64String(data));

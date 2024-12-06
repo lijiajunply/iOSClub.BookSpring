@@ -36,7 +36,7 @@ public class BookController(
     [TokenActionFilter]
     [Authorize(Roles = "Admin")]
     [HttpPost("/AddBooks")]
-    public async Task<ActionResult> Post([FromBody] string content)
+    public async Task<ActionResult> AddBooks([FromBody] string content)
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
         if (member == null) return NotFound();
@@ -52,6 +52,7 @@ public class BookController(
         foreach (var model in data)
         {
             if (await context.Books.AnyAsync(e => e.Id == model.Id)) continue;
+            model.Categories.Clear();
             var categories = model.Category.Split(',');
             foreach (var category in categories)
             {

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices.JavaScript;
 using System.Security.Cryptography;
 using System.Text;
 using BookSpring.DataLib.DataModels;
@@ -70,7 +71,7 @@ public static class DataTool
 
 public abstract class DataModel
 {
-    public override string ToString() => $"{GetType()} : {DataTool.GetProperties(this)}";
+    public override string ToString() => $"{GetType()} : {DataTool.GetProperties(this)},Time:{DateTime.Now.Ticks}";
 }
 
 // ReSharper disable once UnusedType.Global
