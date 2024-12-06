@@ -25,19 +25,19 @@ public class CategoryController(
     public async Task<ActionResult<CategoryModel>> GetCategory(string id)
     {
         var category = await context.Categories
-            .FirstOrDefaultAsync(x => x.Name == id || x.Key == id);
+            .FirstOrDefaultAsync(x => x.Name == id);
         if (category == null) return NotFound();
         return category;
     }
     
     [HttpGet("/GetCategoryBook/{id}")]
-    public async Task<ActionResult<IEnumerable<BookModel>>> GetCategoryBook(string id)
+    public async Task<ActionResult<string>> GetCategoryBook(string id)
     {
         var category = await context.Categories
             .Include(x => x.Books)
-            .FirstOrDefaultAsync(x => x.Name == id || x.Key == id);
+            .FirstOrDefaultAsync(x => x.Name == id);
         if (category == null) return NotFound();
-        return category.Books;
+        return Convert.ToBase64String(GZipServer.Compress(JsonSerializer.SerializeToUtf8Bytes(category.Books)));
     }
 
     [TokenActionFilter]

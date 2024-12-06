@@ -16,6 +16,11 @@
         <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
             <MudStack>
                 <MudText Typo="Typo.h5">基本信息</MudText>
+                @if (IsLoading)
+                {
+                    <MudSkeleton Height="70px"/>
+                    <MudSkeleton Height="70px"/>
+                }
                 <MudList T="string">
                     <MudListItem Text="书籍名称" SecondaryText="@Data.Name"
                                  Icon="@Icons.Material.Filled.Book"/>
@@ -36,6 +41,11 @@
         <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
             <MudText Typo="Typo.h5">关于借阅/下载</MudText>
             <br/>
+            @if (IsLoading)
+            {
+                <MudSkeleton Height="70px"/>
+                <MudSkeleton Height="70px"/>
+            }
             @if (string.IsNullOrEmpty(Data.EBookUrl))
             {
                 @if (string.IsNullOrEmpty(Data.LendToId))
@@ -118,12 +128,13 @@
     public UserModel? Member { get; set; }
 
     private BookModel Data { get; set; } = new();
+    private bool IsLoading { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
-        var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Book/{Id}");
-        Data = await response.Content.ReadFromJsonAsync<BookModel>() ?? new BookModel();
-        await base.OnParametersSetAsync();
+        IsLoading = true;
+        Data = await httpClient.GetFromJsonAsync<BookModel>($"{DataStatic.BaseUrl}/Book/{Id}") ?? new BookModel();
+        IsLoading = false;
     }
 
     private async Task LendBook()

@@ -172,11 +172,13 @@ else
     protected override async Task OnParametersSetAsync()
     {
         IsLoading = true;
+        HttpResponseMessage response;
+        string json;
         if (string.IsNullOrEmpty(Key))
         {
             List = [];
-            var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Category");
-            var json = await response.Content.ReadAsStringAsync();
+            response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Category");
+            json = await response.Content.ReadAsStringAsync();
             json = GZipServer.DecompressString(json);
             Categories = JsonSerializer.Deserialize<List<CategoryModel>>(json) ?? [];
             CategoryList = Categories.ToArray();
@@ -189,7 +191,10 @@ else
         CategoryData = new CategoryModel();
         CategoryData = await httpClient.GetFromJsonAsync<CategoryModel>($"{DataStatic.BaseUrl}/Category/{Key.GetUrl()}") ?? new CategoryModel();
         if (string.IsNullOrEmpty(Key)) return;
-        CategoryData.Books = await httpClient.GetFromJsonAsync<List<BookModel>>($"{DataStatic.BaseUrl}/GetCategoryBook/{Key.GetUrl()}") ?? [];
+        response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/GetCategoryBook/{Key.GetUrl()}");
+        json = await response.Content.ReadAsStringAsync();
+        json = GZipServer.DecompressString(json);
+        CategoryData.Books = JsonSerializer.Deserialize<List<BookModel>>(json) ?? [];
         IsLoading = false;
     }
 
