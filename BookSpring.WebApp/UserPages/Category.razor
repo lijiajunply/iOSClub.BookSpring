@@ -1,91 +1,155 @@
 ﻿@page "/Category/{Key?}"
+@using System.Diagnostics.CodeAnalysis
+@using System.Net.Http.Headers
+@using BookSpring.WebApp.Dialogs
 @using BookSpring.WebApp.Models
+@using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient httpClient
+@inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager Nav
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>@((string.IsNullOrEmpty(Key) ? "全部标签" : Key) + " - iLibrary")</PageTitle>
 
 @if (string.IsNullOrEmpty(Key))
 {
     <MudStack>
         <MudTextField T="string" ValueChanged="Search"
                       Label="搜索列表/标签" Variant="Variant.Filled"/>
-        <MudGrid>
-            @foreach (var item in CategoryList)
+        @if (string.IsNullOrEmpty(SearchKey))
+        {
+            foreach (var item in List)
             {
-                <MudItem xs="12" sm="4" md="3">
-                    <MudCard>
-                        <MudCardContent>
-                            <MudText>@item.Name</MudText>
-                            <MudText Typo="Typo.body2">@item.Description</MudText>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudButton OnClick="@(() => Nav.NavigateTo($"/Category/{item.Name.GetUrl()}"))"
-                                       Variant="Variant.Text" Color="Color.Primary">点击前往
-                            </MudButton>
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
+                <MudText id="@(string.IsNullOrEmpty(item.Key) ? "其他" : item.Key)"
+                         Typo="Typo.h6">@(string.IsNullOrEmpty(item.Key) ? "其他" : item.Key)</MudText>
+                <MudGrid>
+                    @foreach (var context in item)
+                    {
+                        <MudItem xs="12" sm="4" md="3">
+                            <MudCard>
+                                <MudCardContent>
+                                    <MudText>@context.Name</MudText>
+                                    <MudText Typo="Typo.body2">@context.Description</MudText>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton OnClick="@(() => Nav.NavigateTo($"/Category/{context.Name.GetUrl()}"))"
+                                               Variant="Variant.Text" Color="Color.Primary">点击前往
+                                    </MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
             }
-        </MudGrid>
+        }
+        else
+        {
+            <MudGrid>
+                @foreach (var item in CategoryList)
+                {
+                    <MudItem xs="12" sm="4" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText>@item.Name</MudText>
+                                <MudText Typo="Typo.body2">@item.Description</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton OnClick="@(() => Nav.NavigateTo($"/Category/{item.Name.GetUrl()}"))"
+                                           Variant="Variant.Text" Color="Color.Primary">点击前往
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
     </MudStack>
 }
 else
 {
-    <MudPaper Elevation="25" Class="mt-10 mb-5">
-        <MudToolBar>
-            <MudText Typo="Typo.h6">@($"书籍列表-{Key}")</MudText>
-        </MudToolBar>
-        <MudTable T="BookModel" Hover
-                  Items="@Books"
-                  Class="mt-5"
-                  ReadOnly
-                  Breakpoint="Breakpoint.Sm"
-                  RowClass="cursor-pointer">
-            <HeaderContent>
-                <MudTh>
-                    <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Name)">名称</MudTableSortLabel>
-                </MudTh>
-                <MudTh>
-                    <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Category)">标签</MudTableSortLabel>
-                </MudTh>
-                <MudTh>
-                    <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>string.IsNullOrEmpty(x.EBookUrl))">
-                        是否为电子书
-                    </MudTableSortLabel>
-                </MudTh>
-                <MudTh>书籍详情</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="名称">@context.Name</MudTd>
-                <MudTd DataLabel="标签">
-                    @foreach (var s in context.Category.Split(","))
-                    {
-                        <MudChip OnClick="@(() => Nav.NavigateTo($"/Category/{s}"))"
-                                 Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
-                    }
-                </MudTd>
-                <MudTd DataLabel="电子/纸质">@(string.IsNullOrEmpty(context.EBookUrl) ? "纸质书" : "电子书")</MudTd>
-                <MudTd DataLabel="书籍详情">
-                    <MudButton OnClick="@(() => Nav.NavigateTo($"/Book/{context.Id}"))"
-                               StartIcon="@Icons.Material.Filled.OpenInNew">书籍详情
+    <MudStack>
+        <MudPaper Class="pa-5">
+            <MudToolBar>
+                <div>
+                    <MudText Typo="Typo.h6">@($"书籍列表 - {Key}")</MudText>
+                    <MudText Typo="Typo.subtitle2">@CategoryData.Description</MudText>
+                    <MudChip
+                        OnClick="@(() => Nav.NavigateTo($"/Category#{(string.IsNullOrEmpty(CategoryData.Type) ? "其他" : CategoryData.Type)}"))"
+                        Size="Size.Small" Label="true" T="string" Color="Color.Primary">
+                        @CategoryData.Type
+                    </MudChip>
+                </div>
+                <MudSpacer/>
+                @if (Member.Identity == "Admin")
+                {
+                    <MudButton StartIcon="@Icons.Material.Filled.Update" OnClick="ChangeCategory">
+                        更改标签
                     </MudButton>
-                </MudTd>
-            </RowTemplate>
-            <PagerContent>
-                <MudTablePager PageSizeOptions="new[] { 10, 25, int.MaxValue }"
-                               RowsPerPageString="每页行数："
-                               InfoFormat="{first_item}-{last_item}, 共{all_items}本书"
-                               AllItemsText="全部"
-                               HorizontalAlignment="@HorizontalAlignment.Center"/>
-            </PagerContent>
-        </MudTable>
-    </MudPaper>
+                }
+            </MudToolBar>
+        </MudPaper>
+        <MudPaper Elevation="25">
+            <MudTable T="BookModel" Hover
+                      Items="@CategoryData.Books"
+                      Class="mt-5"
+                      ReadOnly
+                      Breakpoint="Breakpoint.Sm"
+                      RowClass="cursor-pointer">
+                <HeaderContent>
+                    <MudTh>
+                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Name)">名称</MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Category)">标签</MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>string.IsNullOrEmpty(x.EBookUrl))">
+                            是否为电子书
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>书籍详情</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="名称">@context.Name</MudTd>
+                    <MudTd DataLabel="标签">
+                        @foreach (var s in context.Category.Split(","))
+                        {
+                            <MudChip OnClick="@(() => Nav.NavigateTo($"/Category/{s}"))"
+                                     Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="电子/纸质">@(string.IsNullOrEmpty(context.EBookUrl) ? "纸质书" : "电子书")</MudTd>
+                    <MudTd DataLabel="书籍详情">
+                        <MudButton OnClick="@(() => Nav.NavigateTo($"/Book/{context.Id}"))"
+                                   StartIcon="@Icons.Material.Filled.OpenInNew">书籍详情
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new[] { 10, 25, int.MaxValue }"
+                                   RowsPerPageString="每页行数："
+                                   InfoFormat="{first_item}-{last_item}, 共{all_items}本书"
+                                   AllItemsText="全部"
+                                   HorizontalAlignment="@HorizontalAlignment.Center"/>
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudStack>
 }
 
 @code {
+
+    [CascadingParameter(Name = "Member")]
+    [NotNull]
+    public UserModel? Member { get; set; }
+
     [Parameter] public string? Key { get; set; }
-    private List<BookModel> Books { get; set; } = [];
+    private CategoryModel CategoryData { get; set; } = new();
     private List<CategoryModel> Categories { get; set; } = [];
     private CategoryModel[] CategoryList { get; set; } = [];
+    private string SearchKey { get; set; } = "";
+    private IEnumerable<IGrouping<string?, CategoryModel>> List { get; set; } = [];
 
     protected override async Task OnParametersSetAsync()
     {
@@ -93,20 +157,52 @@ else
         {
             Categories = await httpClient.GetFromJsonAsync<List<CategoryModel>>($"{DataStatic.BaseUrl}/Category") ?? [];
             CategoryList = Categories.ToArray();
+            List = CategoryList.GroupBy(x => x.Type);
             return;
         }
 
-        Books = await httpClient.GetFromJsonAsync<List<BookModel>>($"{DataStatic.BaseUrl}/Category/{Key.GetUrl()}") ?? [];
+        if (string.IsNullOrEmpty(Key)) return;
+        CategoryData = await httpClient.GetFromJsonAsync<CategoryModel>($"{DataStatic.BaseUrl}/Category/{Key.GetUrl()}") ?? new CategoryModel();
+        if (string.IsNullOrEmpty(Key)) return;
+        CategoryData.Books = await httpClient.GetFromJsonAsync<List<BookModel>>($"{DataStatic.BaseUrl}/GetCategoryBook/{Key.GetUrl()}") ?? [];
     }
 
     private void Search(string key)
     {
+        SearchKey = key;
         if (string.IsNullOrEmpty(key))
         {
             CategoryList = Categories.ToArray();
         }
 
         CategoryList = Categories.Where(x => x.Name.Contains(key)).ToArray();
+    }
+
+    private async Task ChangeCategory()
+    {
+        var parameters = new DialogParameters<ChangeCategoryDialog> { { x => x.Category, CategoryData } };
+        var options = new DialogOptions() { BackgroundClass = "my-dialog-class" };
+        var a = await DialogService.ShowAsync<ChangeCategoryDialog>("", parameters, options);
+        var result = await a.Result;
+
+        if (result is { Canceled: false })
+        {
+            if (result.Data is not CategoryModel category) return;
+            var jwt = (JwtProvider)authStateProvider;
+            var cookie = await jwt.GetCookie();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+            var response = await httpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/Category", category);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("更改标签成功", Severity.Success);
+                CategoryData.Name = category.Name;
+                CategoryData.Description = category.Description;
+            }
+            else
+            {
+                Snackbar.Add("更改标签失败", Severity.Error);
+            }
+        }
     }
 
 }

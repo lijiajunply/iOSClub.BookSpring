@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -12,6 +13,7 @@ public class CategoryModel : DataModel
     [Column(TypeName = "varchar(64)")] public string Name { get; set; } = "";
     
     [Column(TypeName = "varchar(64)")] public string? Description { get; set; }
+    [Column(TypeName = "varchar(64)")] public string? Type { get; set; }
     
     [JsonIgnore]
     public List<BookModel> Books { get; init; } = [];

@@ -38,10 +38,5 @@ public class BookModel : DataModel
         if (!string.IsNullOrEmpty(model.Description)) Description = model.Description;
         if (!string.IsNullOrEmpty(model.Category)) Category = model.Category;
         if (!string.IsNullOrEmpty(model.EBookUrl)) EBookUrl = model.EBookUrl;
-        Categories.Clear();
-        foreach (var category in model.Categories)
-        {
-            Categories.Add(category);
-        }
     }
 }

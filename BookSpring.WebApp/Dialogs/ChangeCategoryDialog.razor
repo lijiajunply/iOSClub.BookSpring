@@ -1,0 +1,51 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using BookSpring.WebApp.Models
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.ChangeHistory" Class="mr-3 mb-n1"/>
+            更改标签
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="@Category" OnValidSubmit="CloseServer">
+            <DataAnnotationsValidator/>
+            <MudTextField @bind-Value="@Category.Name" For="@(() => Category.Name)" Label="书籍名称"/>
+            <MudTextField @bind-Value="@Category.Description" For="@(() => Category.Description)" Label="简介"/>
+            <MudTextField @bind-Value="@Category.Type" For="@(() => Category.Type)" Label="类型"/>
+            <div style="text-align: center;margin-top: 5px;margin-bottom: 5px;">
+                <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">更改</MudButton>
+                <MudButton OnClick="Cancel">取消</MudButton>
+            </div>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] [NotNull] private MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] public CategoryModel Category { get; set; } = new();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void CloseServer()
+    {
+        if (string.IsNullOrEmpty(Category.Name))
+        {
+            Snackbar.Add("名称未填", Severity.Info);
+            return;
+        }
+
+        MudDialog.Close(DialogResult.Ok(Category));
+    }
+
+}
+
+<style>
+    .mud-input-control {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+</style>

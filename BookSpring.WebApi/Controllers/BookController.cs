@@ -71,6 +71,7 @@ public class BookController(
 
                 model.Categories.Add(cate);
             }
+
             await context.Books.AddAsync(model);
         }
 
@@ -92,6 +93,8 @@ public class BookController(
         member = await context.Users
             .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
         if (member == null) return NotFound();
+
+        bookModel.Categories.Clear();
 
         var categories = bookModel.Category.Split(',');
         foreach (var category in categories)
@@ -131,13 +134,28 @@ public class BookController(
             return bookModel;
         }
 
-        var book = await context.Books.FirstOrDefaultAsync(x => x.Id == bookModel.Id);
+        var book = await context.Books.Include(x => x.Categories)
+            .ThenInclude(categoryModel => categoryModel.Books)
+            .FirstOrDefaultAsync(x => x.Id == bookModel.Id);
         if (book == null) return NotFound();
 
         if (member.Id != book.CreatedById || member.Identity != "Admin") return NotFound();
         book.Update(bookModel);
 
-        context.Update(book);
+        foreach (var model in from model in book.Categories
+                 where model.Books.Count == 1
+                 let a = model.Books.First()
+                 where a.Id == book.Id
+                 select model)
+        {
+            context.Categories.Remove(model);
+        }
+        await context.SaveChangesAsync();
+
+        book.Categories.Clear();
+        await context.SaveChangesAsync();
+        
+        book.Categories.AddRange(bookModel.Categories);
         await context.SaveChangesAsync();
 
         return book;
@@ -205,19 +223,5 @@ public class BookController(
 
         await context.SaveChangesAsync();
         return Ok();
-    }
-
-    [HttpGet("/Category")]
-    public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories()
-    {
-        return await context.Categories.ToListAsync();
-    }
-
-    [HttpGet("/Category/{id}")]
-    public async Task<ActionResult<IEnumerable<BookModel>>> GetCategory(string id)
-    {
-        var category = await context.Categories.Include(x => x.Books)
-            .FirstOrDefaultAsync(x => x.Name == id || x.Key == id);
-        return category?.Books ?? [];
     }
 }

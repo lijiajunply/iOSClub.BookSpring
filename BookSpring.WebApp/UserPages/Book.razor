@@ -25,7 +25,7 @@
                 <div>
                     @foreach (var s in Data.Category.Split(","))
                     {
-                        <MudChip OnClick="@(() => Nav.NavigateTo($"/Library/{s}"))"
+                        <MudChip OnClick="@(() => Nav.NavigateTo($"/Category/{s.GetUrl()}"))"
                                  Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
                     }
                 </div>

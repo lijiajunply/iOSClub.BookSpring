@@ -87,13 +87,12 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine(e.Message);
     }
 
-    if (!context.Categories.Any())
+    if (context.Categories.Any())
     {
-        var bookList = await context.Books.Include(b => b.Categories).ToListAsync();
-        var cateList = await context.Categories.ToListAsync();
-        foreach (var book in bookList)
+        var categories = await context.Categories.ToListAsync();
+        foreach (var category in categories)
         {
-            
+            category.Type = "iOS编程资料";
         }
     }
 
