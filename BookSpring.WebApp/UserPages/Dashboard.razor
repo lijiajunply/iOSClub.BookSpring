@@ -83,7 +83,7 @@
             <MudTd DataLabel="标签">
                 @foreach (var s in context.Category.Split(","))
                 {
-                    <MudChip OnClick="@(() => Nav.NavigateTo($"/Library/{s}"))"
+                    <MudChip OnClick="@(() => Nav.NavigateTo($"/Category/{s.GetUrl()}"))"
                              Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
                 }
             </MudTd>
@@ -138,7 +138,7 @@
             <MudTd DataLabel="标签">
                 @foreach (var s in context.Category.Split(","))
                 {
-                    <MudChip OnClick="@(() => Nav.NavigateTo($"/Library/{s}"))"
+                    <MudChip OnClick="@(() => Nav.NavigateTo($"/Category/{s.GetUrl()}"))"
                              Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
                 }
             </MudTd>

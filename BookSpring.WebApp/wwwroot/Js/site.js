@@ -26,20 +26,22 @@ function jsSaveAsFile(filename, byteBase64) {
 
 // wwwroot/localStorage.js
 
-window.localStorageHelper = {
-    setItem: function (key, value) {
-        localStorage.setItem(key, value);
-    },
-    getItem: function (key) {
-        return localStorage.getItem(key);
-    },
-    removeItem: function (key) {
-        localStorage.removeItem(key);
-    },
-    clear: function () {
-        localStorage.clear();
-    }
-};
+function setLocalStorage(key, value) {
+    localStorage.setItem(key, value);
+}
+
+function getLocalStorage(key) {
+    return localStorage.getItem(key);
+}
+
+function removeLocalStorage(key) {
+    localStorage.removeItem(key);
+}
+
+function clearLocalStorage(){
+    localStorage.clear();
+}
+
 
 async function copyText(content) {
     try {

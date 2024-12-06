@@ -66,4 +66,20 @@ public class UserController(
         await context.SaveChangesAsync();
         return jwtHelper.GetMemberToken(userData);
     }
+
+    [TokenActionFilter]
+    [Authorize("Admin")]
+    [HttpGet("/Admin")]
+    public async Task<ActionResult<string>> GetAdminData()
+    {
+        var member = httpContextAccessor.HttpContext?.User.GetUser();
+        if (member == null) return NotFound();
+        member = await context.Users.FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
+        if (member is not { Identity: "Admin" }) return NotFound();
+
+        var userList = await context.Users.Include(x => x.CreatedBooks).Include(x => x.LendBooks).ToArrayAsync();
+
+        var compressAfterByte = GZipServer.Compress(JsonSerializer.SerializeToUtf8Bytes(userList));
+        return Convert.ToBase64String(compressAfterByte);
+    }
 }

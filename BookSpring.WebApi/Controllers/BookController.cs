@@ -16,7 +16,7 @@ public class BookController(
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookModel>>> GetBooks()
     {
-        return await context.Books.ToListAsync();
+        return await context.Books.Include(x => x.Categories).ToListAsync();
     }
 
     // GET: api/Book/5
@@ -36,7 +36,7 @@ public class BookController(
     [TokenActionFilter]
     [Authorize(Roles = "Admin")]
     [HttpPost("/AddBooks")]
-    public async Task<ActionResult> Post([FromBody]string content)
+    public async Task<ActionResult> Post([FromBody] string content)
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
         if (member == null) return NotFound();
@@ -46,12 +46,30 @@ public class BookController(
         if (member is not { Identity: "Admin" }) return NotFound();
 
         content = GZipServer.DecompressString(content);
-        
+
         var data = JsonSerializer.Deserialize<BookModel[]>(content) ?? [];
 
         foreach (var model in data)
         {
-            if(await context.Books.AnyAsync(e => e.Id == model.Id))continue;
+            if (await context.Books.AnyAsync(e => e.Id == model.Id)) continue;
+            var categories = model.Category.Split(',');
+            foreach (var category in categories)
+            {
+                if (model.Categories.Any(x => x.Name == category)) continue;
+                var cate = await context.Categories.FirstOrDefaultAsync(x => x.Name == category);
+                if (cate == null)
+                {
+                    cate = new CategoryModel
+                    {
+                        Name = category
+                    };
+                    cate.Key = DataTool.StringToHash(cate.ToString());
+                    context.Categories.Add(cate);
+                    await context.SaveChangesAsync();
+                }
+
+                model.Categories.Add(cate);
+            }
             await context.Books.AddAsync(model);
         }
 
@@ -74,6 +92,25 @@ public class BookController(
             .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
         if (member == null) return NotFound();
 
+        var categories = bookModel.Category.Split(',');
+        foreach (var category in categories)
+        {
+            if (bookModel.Categories.Any(x => x.Name == category)) continue;
+            var cate = await context.Categories.FirstOrDefaultAsync(x => x.Name == category);
+            if (cate == null)
+            {
+                cate = new CategoryModel
+                {
+                    Name = category
+                };
+                cate.Key = DataTool.StringToHash(cate.ToString());
+                context.Categories.Add(cate);
+                await context.SaveChangesAsync();
+            }
+
+            bookModel.Categories.Add(cate);
+        }
+
         if (string.IsNullOrEmpty(bookModel.Id))
         {
             bookModel.Id = DataTool.StringToHash(bookModel.ToString());
@@ -93,13 +130,12 @@ public class BookController(
             return bookModel;
         }
 
-        var book = await context.Books.Include(x => x.CreatedBy)
-            .FirstOrDefaultAsync(x => x.Id == bookModel.Id);
+        var book = await context.Books.FirstOrDefaultAsync(x => x.Id == bookModel.Id);
         if (book == null) return NotFound();
 
-
-        if (member.Id != book.CreatedBy?.Id || member.Identity != "Admin") return NotFound();
+        if (member.Id != book.CreatedById || member.Identity != "Admin") return NotFound();
         book.Update(bookModel);
+
         context.Update(book);
         await context.SaveChangesAsync();
 
@@ -119,11 +155,21 @@ public class BookController(
         if (member == null) return NotFound();
 
         var bookModel = await context.Books
-            .Include(x => x.CreatedBy)
+            .Include(x => x.Categories)
+            .ThenInclude(categoryModel => categoryModel.Books)
             .FirstOrDefaultAsync(x => x.Id == id);
-        if (bookModel == null || member.Id != bookModel.CreatedBy?.Id || member.Identity != "Admin")
+        if (bookModel == null || member.Id != bookModel.CreatedById || member.Identity != "Admin")
         {
             return NotFound();
+        }
+
+        foreach (var model in from model in bookModel.Categories
+                 where model.Books.Count == 1
+                 let a = model.Books.First()
+                 where a.Id == id
+                 select model)
+        {
+            context.Categories.Remove(model);
         }
 
         context.Books.Remove(bookModel);
@@ -158,5 +204,19 @@ public class BookController(
 
         await context.SaveChangesAsync();
         return Ok();
+    }
+
+    [HttpGet("/Category")]
+    public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories()
+    {
+        return await context.Categories.ToListAsync();
+    }
+
+    [HttpGet("/Category/{id}")]
+    public async Task<ActionResult<IEnumerable<BookModel>>> GetCategory(string id)
+    {
+        var category = await context.Categories.Include(x => x.Books)
+            .FirstOrDefaultAsync(x => x.Name == id || x.Key == id);
+        return category?.Books ?? [];
     }
 }

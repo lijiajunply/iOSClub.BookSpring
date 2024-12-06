@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookSpring.DataLib.Migrations
 {
     [DbContext(typeof(BookContext))]
-    [Migration("20241204171701_Initial")]
+    [Migration("20241205141341_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -18,6 +18,21 @@ namespace BookSpring.DataLib.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
+
+            modelBuilder.Entity("BookModelCategoryModel", b =>
+                {
+                    b.Property<string>("BooksId")
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("CategoriesKey")
+                        .HasColumnType("varchar(64)");
+
+                    b.HasKey("BooksId", "CategoriesKey");
+
+                    b.HasIndex("CategoriesKey");
+
+                    b.ToTable("BookModelCategoryModel");
+                });
 
             modelBuilder.Entity("BookSpring.DataLib.DataModels.BookModel", b =>
                 {
@@ -65,6 +80,23 @@ namespace BookSpring.DataLib.Migrations
                     b.ToTable("Books");
                 });
 
+            modelBuilder.Entity("BookSpring.DataLib.DataModels.CategoryModel", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(64)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("BookSpring.DataLib.DataModels.UserModel", b =>
                 {
                     b.Property<string>("Id")
@@ -81,6 +113,21 @@ namespace BookSpring.DataLib.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("BookModelCategoryModel", b =>
+                {
+                    b.HasOne("BookSpring.DataLib.DataModels.BookModel", null)
+                        .WithMany()
+                        .HasForeignKey("BooksId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BookSpring.DataLib.DataModels.CategoryModel", null)
+                        .WithMany()
+                        .HasForeignKey("CategoriesKey")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("BookSpring.DataLib.DataModels.BookModel", b =>

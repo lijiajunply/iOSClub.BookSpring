@@ -17,7 +17,7 @@ public class JwtProvider(IJSRuntime js) : AuthenticationStateProvider
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         // 从本地存储或 Cookie 中获取 JWT 令牌
-        var token = await js.InvokeAsync<string>("localStorageHelper.getItem", "jwt");
+        var token = await js.InvokeAsync<string>("getLocalStorage", "jwt");
 
         if (string.IsNullOrEmpty(token))
             return await Task.FromResult(new AuthenticationState(_anonymous));
@@ -35,11 +35,11 @@ public class JwtProvider(IJSRuntime js) : AuthenticationStateProvider
     {
         if (!string.IsNullOrEmpty(jwt))
         {
-            await js.InvokeVoidAsync("localStorageHelper.setItem", "jwt", jwt);
+            await js.InvokeVoidAsync("setLocalStorage", "jwt", jwt);
         }
         else
         {
-            await js.InvokeVoidAsync("localStorageHelper.removeItem", "jwt");
+            await js.InvokeVoidAsync("removeLocalStorage", "jwt");
         }
 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_anonymous)));
@@ -47,7 +47,7 @@ public class JwtProvider(IJSRuntime js) : AuthenticationStateProvider
 
     public async Task<UserModel?> GetPermission()
     {
-        var token = await js.InvokeAsync<string>("localStorageHelper.getItem", "jwt");
+        var token = await js.InvokeAsync<string>("getLocalStorage", "jwt");
 
         if (string.IsNullOrEmpty(token))
             return null;
@@ -69,5 +69,6 @@ public class JwtProvider(IJSRuntime js) : AuthenticationStateProvider
         };
     }
 
-    public async Task<string> GetCookie() => await js.InvokeAsync<string>("localStorageHelper.getItem", "jwt");
+    public async Task<string> GetCookie() =>
+        await js.InvokeAsync<string>("getLocalStorage", "jwt");
 }

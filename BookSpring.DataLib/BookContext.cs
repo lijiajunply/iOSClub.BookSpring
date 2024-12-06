@@ -17,6 +17,7 @@ public sealed class BookContext : DbContext
 
     public DbSet<BookModel> Books { get; init; }
     public DbSet<UserModel> Users { get; init; }
+    public DbSet<CategoryModel> Categories { get; init; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +27,9 @@ public sealed class BookContext : DbContext
         modelBuilder.Entity<UserModel>().HasMany(x => x.LendBooks)
             .WithOne(x => x.LendTo)
             .HasForeignKey(x => x.LendToId).IsRequired(false);
+        modelBuilder.Entity<BookModel>()
+            .HasMany(x => x.Categories)
+            .WithMany(x => x.Books);
     }
 }
 

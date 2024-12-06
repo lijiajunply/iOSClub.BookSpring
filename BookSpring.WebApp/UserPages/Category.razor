@@ -1,0 +1,112 @@
+﻿@page "/Category/{Key?}"
+@using BookSpring.WebApp.Models
+@inject HttpClient httpClient
+@inject NavigationManager Nav
+
+@if (string.IsNullOrEmpty(Key))
+{
+    <MudStack>
+        <MudTextField T="string" ValueChanged="Search"
+                      Label="搜索列表/标签" Variant="Variant.Filled"/>
+        <MudGrid>
+            @foreach (var item in CategoryList)
+            {
+                <MudItem xs="12" sm="4" md="3">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText>@item.Name</MudText>
+                            <MudText Typo="Typo.body2">@item.Description</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton OnClick="@(() => Nav.NavigateTo($"/Category/{item.Name.GetUrl()}"))"
+                                       Variant="Variant.Text" Color="Color.Primary">点击前往
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudStack>
+}
+else
+{
+    <MudPaper Elevation="25" Class="mt-10 mb-5">
+        <MudToolBar>
+            <MudText Typo="Typo.h6">@($"书籍列表-{Key}")</MudText>
+        </MudToolBar>
+        <MudTable T="BookModel" Hover
+                  Items="@Books"
+                  Class="mt-5"
+                  ReadOnly
+                  Breakpoint="Breakpoint.Sm"
+                  RowClass="cursor-pointer">
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Name)">名称</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Category)">标签</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>string.IsNullOrEmpty(x.EBookUrl))">
+                        是否为电子书
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh>书籍详情</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="名称">@context.Name</MudTd>
+                <MudTd DataLabel="标签">
+                    @foreach (var s in context.Category.Split(","))
+                    {
+                        <MudChip OnClick="@(() => Nav.NavigateTo($"/Category/{s}"))"
+                                 Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
+                    }
+                </MudTd>
+                <MudTd DataLabel="电子/纸质">@(string.IsNullOrEmpty(context.EBookUrl) ? "纸质书" : "电子书")</MudTd>
+                <MudTd DataLabel="书籍详情">
+                    <MudButton OnClick="@(() => Nav.NavigateTo($"/Book/{context.Id}"))"
+                               StartIcon="@Icons.Material.Filled.OpenInNew">书籍详情
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] { 10, 25, int.MaxValue }"
+                               RowsPerPageString="每页行数："
+                               InfoFormat="{first_item}-{last_item}, 共{all_items}本书"
+                               AllItemsText="全部"
+                               HorizontalAlignment="@HorizontalAlignment.Center"/>
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public string? Key { get; set; }
+    private List<BookModel> Books { get; set; } = [];
+    private List<CategoryModel> Categories { get; set; } = [];
+    private CategoryModel[] CategoryList { get; set; } = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(Key))
+        {
+            Categories = await httpClient.GetFromJsonAsync<List<CategoryModel>>($"{DataStatic.BaseUrl}/Category") ?? [];
+            CategoryList = Categories.ToArray();
+            return;
+        }
+
+        Books = await httpClient.GetFromJsonAsync<List<BookModel>>($"{DataStatic.BaseUrl}/Category/{Key.GetUrl()}") ?? [];
+    }
+
+    private void Search(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            CategoryList = Categories.ToArray();
+        }
+
+        CategoryList = Categories.Where(x => x.Name.Contains(key)).ToArray();
+    }
+
+}

@@ -25,6 +25,8 @@ public class BookModel : DataModel
     [Column(TypeName = "varchar(256)")] public string ImageUrl { get; set; } = "";
     [Column(TypeName = "varchar(64)")] public string Description { get; set; } = "";
     [Column(TypeName = "varchar(64)")] public string Category { get; set; } = "";
+    
+    public List<CategoryModel> Categories { get; init; } = [];
     [Column(TypeName = "varchar(64)")] public string EBookUrl { get; set; } = "";
 
     public void Update(BookModel model)
@@ -36,5 +38,10 @@ public class BookModel : DataModel
         if (!string.IsNullOrEmpty(model.Description)) Description = model.Description;
         if (!string.IsNullOrEmpty(model.Category)) Category = model.Category;
         if (!string.IsNullOrEmpty(model.EBookUrl)) EBookUrl = model.EBookUrl;
+        Categories.Clear();
+        foreach (var category in model.Categories)
+        {
+            Categories.Add(category);
+        }
     }
 }

@@ -11,6 +11,19 @@ namespace BookSpring.DataLib.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Categories",
+                columns: table => new
+                {
+                    Key = table.Column<string>(type: "varchar(64)", nullable: false),
+                    Name = table.Column<string>(type: "varchar(64)", nullable: false),
+                    Description = table.Column<string>(type: "varchar(64)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Categories", x => x.Key);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -53,6 +66,35 @@ namespace BookSpring.DataLib.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "BookModelCategoryModel",
+                columns: table => new
+                {
+                    BooksId = table.Column<string>(type: "varchar(64)", nullable: false),
+                    CategoriesKey = table.Column<string>(type: "varchar(64)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BookModelCategoryModel", x => new { x.BooksId, x.CategoriesKey });
+                    table.ForeignKey(
+                        name: "FK_BookModelCategoryModel_Books_BooksId",
+                        column: x => x.BooksId,
+                        principalTable: "Books",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BookModelCategoryModel_Categories_CategoriesKey",
+                        column: x => x.CategoriesKey,
+                        principalTable: "Categories",
+                        principalColumn: "Key",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BookModelCategoryModel_CategoriesKey",
+                table: "BookModelCategoryModel",
+                column: "CategoriesKey");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Books_CreatedById",
                 table: "Books",
@@ -68,7 +110,13 @@ namespace BookSpring.DataLib.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "BookModelCategoryModel");
+
+            migrationBuilder.DropTable(
                 name: "Books");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "Users");

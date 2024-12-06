@@ -14,6 +14,7 @@ public class BookModel
     public string Description { get; set; } = "";
     public string Category { get; set; } = "";
     public string EBookUrl { get; set; } = "";
+    public List<CategoryModel> Categories { get; init; } = [];
 
     public void Update(BookModel model)
     {

@@ -1,4 +1,4 @@
-﻿@page "/Library/{Key?}"
+﻿@page "/Library"
 @using System.Diagnostics.CodeAnalysis
 @using System.Net.Http.Headers
 @using System.Text
@@ -79,10 +79,10 @@
         <RowTemplate>
             <MudTd DataLabel="名称">@context.Name</MudTd>
             <MudTd DataLabel="标签">
-                @foreach (var s in context.Category.Split(","))
+                @foreach (var s in context.Categories)
                 {
-                    <MudChip OnClick="@(() => Nav.NavigateTo($"/Library/{s}"))"
-                             Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s</MudChip>
+                    <MudChip OnClick="@(() => Nav.NavigateTo($"/Category/{s.Name.GetUrl()}"))"
+                             Size="Size.Small" Label="true" T="string" Color="Color.Primary">@s.Name</MudChip>
                 }
             </MudTd>
             <MudTd DataLabel="电子/纸质">@(string.IsNullOrEmpty(context.EBookUrl) ? "纸质书" : "电子书")</MudTd>
@@ -124,37 +124,18 @@
     [NotNull]
     public UserModel? Member { get; set; }
 
-    private List<BookModel> Books { get; } = [];
-    private BookModel[] AllBooks { get; set; } = [];
+    private List<BookModel> Books { get; set; } = [];
     private string SearchString { get; set; } = "";
     private string SearchType { get; set; } = "书名";
     public bool IsEBookSwitch { get; set; } = true;
     [Parameter] public string Key { get; set; } = "";
     private bool IsUpload { get; set; }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        Books.Clear();
-        if (AllBooks.Length == 0)
-        {
-            var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Book");
-            AllBooks = await response.Content.ReadFromJsonAsync<BookModel[]>() ?? [];
-        }
-
-        if (!string.IsNullOrEmpty(Key))
-        {
-            Books.AddRange(AllBooks.Where(x => x.Category.Contains(Key, StringComparison.CurrentCultureIgnoreCase)));
-            return;
-        }
-
-        Books.AddRange(AllBooks);
-    }
-
+    
     protected override async Task OnInitializedAsync()
     {
-        if (AllBooks.Length != 0) return;
+        if (Books.Count!= 0) return;
         var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Book");
-        AllBooks = await response.Content.ReadFromJsonAsync<BookModel[]>() ?? [];
+        Books = await response.Content.ReadFromJsonAsync<List<BookModel>>() ?? [];
     }
 
     private bool FilterFunc(BookModel element)
@@ -233,7 +214,7 @@
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-        var jsonString = JsonSerializer.Serialize(AllBooks, options);
+        var jsonString = JsonSerializer.Serialize(Books, options);
         var data = Encoding.UTF8.GetBytes(jsonString);
 
         await JS.InvokeVoidAsync("jsSaveAsFile", "所有图书.json", Convert.ToBase64String(data));

@@ -1,5 +1,6 @@
 using System.Text;
 using BookSpring.DataLib;
+using BookSpring.DataLib.DataModels;
 using BookSpring.WebApi.Controllers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +17,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin", policy =>
+    options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://lib.xauat.site") // 明确列出允许的源
-            .AllowCredentials() // 允许凭据
+        policy.AllowCredentials() // 允许凭据
             .AllowAnyHeader()
             .AllowAnyMethod()
             .SetIsOriginAllowed(origin => true);
@@ -87,11 +87,21 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine(e.Message);
     }
 
+    if (!context.Categories.Any())
+    {
+        var bookList = await context.Books.Include(b => b.Categories).ToListAsync();
+        var cateList = await context.Categories.ToListAsync();
+        foreach (var book in bookList)
+        {
+            
+        }
+    }
+
     await context.SaveChangesAsync();
     await context.DisposeAsync();
 }
 
-app.UseCors("AllowSpecificOrigin");
+app.UseCors();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

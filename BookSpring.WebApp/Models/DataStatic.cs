@@ -13,4 +13,9 @@ public static class DataStatic
 #endif
         }
     }
+
+    public static string GetUrl(this string path)
+    {
+        return path.Replace("#", "%23");
+    }
 }
