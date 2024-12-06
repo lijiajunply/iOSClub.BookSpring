@@ -14,9 +14,10 @@ public class BookController(
     IHttpContextAccessor httpContextAccessor) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BookModel>>> GetBooks()
+    public async Task<ActionResult<string>> GetBooks()
     {
-        return await context.Books.Include(x => x.Categories).ToListAsync();
+        var list = await context.Books.Include(x => x.Categories).ToListAsync();
+        return Convert.ToBase64String(GZipServer.Compress(JsonSerializer.SerializeToUtf8Bytes(list)));
     }
 
     // GET: api/Book/5
@@ -150,11 +151,12 @@ public class BookController(
         {
             context.Categories.Remove(model);
         }
+
         await context.SaveChangesAsync();
 
         book.Categories.Clear();
         await context.SaveChangesAsync();
-        
+
         book.Categories.AddRange(bookModel.Categories);
         await context.SaveChangesAsync();
 

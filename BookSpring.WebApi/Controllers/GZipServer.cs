@@ -46,7 +46,7 @@ public static class GZipServer
         return compressString;
     }
 
-    private static byte[] Decompress(byte[] data)
+    public static byte[] Decompress(byte[] data)
     {
         try
         {

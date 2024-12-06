@@ -40,10 +40,7 @@ public static class GZipServer
     /// </summary>
     public static string DecompressString(string str)
     {
-        var compressBeforeByte = Convert.FromBase64String(str);
-        var compressAfterByte = Decompress(compressBeforeByte);
-        var compressString = Encoding.GetEncoding("UTF-8").GetString(compressAfterByte);
-        return compressString;
+        return Encoding.GetEncoding("UTF-8").GetString(Decompress(Convert.FromBase64String(str)));
     }
 
     private static byte[] Decompress(byte[] data)
@@ -56,12 +53,8 @@ public static class GZipServer
             var buffer = new byte[0x1000];
             while (true)
             {
-                int reader = zip.Read(buffer, 0, buffer.Length);
-                if (reader <= 0)
-                {
-                    break;
-                }
-
+                var reader = zip.Read(buffer, 0, buffer.Length);
+                if (reader <= 0) break;
                 stream.Write(buffer, 0, reader);
             }
 

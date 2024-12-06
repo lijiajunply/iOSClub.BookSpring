@@ -1,6 +1,7 @@
 ﻿@page "/Category/{Key?}"
 @using System.Diagnostics.CodeAnalysis
 @using System.Net.Http.Headers
+@using System.Text.Json
 @using BookSpring.WebApp.Dialogs
 @using BookSpring.WebApp.Models
 @using Microsoft.AspNetCore.Components.Authorization
@@ -19,6 +20,13 @@
                       Label="搜索列表/标签" Variant="Variant.Filled"/>
         @if (string.IsNullOrEmpty(SearchKey))
         {
+            if (IsLoading)
+            {
+                <MudSkeleton/>
+                <MudSkeleton/>
+                <MudSkeleton/>
+            }
+
             foreach (var item in List)
             {
                 <MudText id="@(string.IsNullOrEmpty(item.Key) ? "其他" : item.Key)"
@@ -40,14 +48,6 @@
                         </MudItem>
                     }
                 </MudGrid>
-                if (IsOK)
-                {
-                    continue;
-                }
-
-                <MudSkeleton/>
-                <MudSkeleton/>
-                <MudSkeleton/>
             }
         }
         else
@@ -79,19 +79,20 @@ else
             <MudToolBar>
                 <div>
                     <MudText Typo="Typo.h6">@($"书籍列表 - {Key}")</MudText>
-                    @if (IsOK || !string.IsNullOrEmpty(CategoryData.Type))
+                    @switch (IsLoading)
                     {
-                        <MudText Typo="Typo.subtitle2">@CategoryData.Description</MudText>
-                        <MudChip
-                            OnClick="@(() => Nav.NavigateTo($"/Category#{(string.IsNullOrEmpty(CategoryData.Type) ? "其他" : CategoryData.Type)}"))"
-                            Size="Size.Small" Label="true" T="string" Color="Color.Primary">
-                            @CategoryData.Type
-                        </MudChip>
-                    }
-                    else if (!IsOK)
-                    {
-                        <MudSkeleton Width="60px"/>
-                        <MudSkeleton Width="30px"/>
+                        case false when !string.IsNullOrEmpty(CategoryData.Type):
+                            <MudText Typo="Typo.subtitle2">@CategoryData.Description</MudText>
+                            <MudChip
+                                OnClick="@(() => Nav.NavigateTo($"/Category#{(string.IsNullOrEmpty(CategoryData.Type) ? "其他" : CategoryData.Type)}"))"
+                                Size="Size.Small" Label="true" T="string" Color="Color.Primary">
+                                @CategoryData.Type
+                            </MudChip>
+                            break;
+                        case true:
+                            <MudSkeleton Width="60px"/>
+                            <MudSkeleton Width="30px"/>
+                            break;
                     }
                 </div>
                 <MudSpacer/>
@@ -107,30 +108,24 @@ else
             <MudTable T="BookModel" Hover
                       Items="@CategoryData.Books"
                       Class="mt-5"
+                      Loading="@IsLoading"
                       ReadOnly
                       Breakpoint="Breakpoint.Sm"
                       RowClass="cursor-pointer">
                 <HeaderContent>
                     <MudTh>
-                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Name)">名称</MudTableSortLabel>
+                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x => x.Name)">名称</MudTableSortLabel>
                     </MudTh>
                     <MudTh>
-                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>x.Category)">标签</MudTableSortLabel>
+                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x => x.Category)">标签
+                        </MudTableSortLabel>
                     </MudTh>
                     <MudTh>
-                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x=>string.IsNullOrEmpty(x.EBookUrl))">
+                        <MudTableSortLabel SortBy="new Func<BookModel, object>(x => string.IsNullOrEmpty(x.EBookUrl))">
                             是否为电子书
                         </MudTableSortLabel>
                     </MudTh>
                     <MudTh>书籍详情</MudTh>
-                    @if (!IsOK)
-                    {
-                        <MudTd>
-                            <MudSkeleton/>
-                            <MudSkeleton/>
-                            <MudSkeleton/>
-                        </MudTd>
-                    }
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="名称">@context.Name</MudTd>
@@ -171,28 +166,31 @@ else
     private List<CategoryModel> Categories { get; set; } = [];
     private CategoryModel[] CategoryList { get; set; } = [];
     private string SearchKey { get; set; } = "";
-    private IEnumerable<IGrouping<string?, CategoryModel>> List { get; set; } = [];
-    private bool IsOK { get; set; }
+    private IGrouping<string?, CategoryModel>[] List { get; set; } = [];
+    private bool IsLoading { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
-        IsOK = false;
+        IsLoading = true;
         if (string.IsNullOrEmpty(Key))
         {
-            Categories = await httpClient.GetFromJsonAsync<List<CategoryModel>>($"{DataStatic.BaseUrl}/Category") ?? [];
+            List = [];
+            var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Category");
+            var json = await response.Content.ReadAsStringAsync();
+            json = GZipServer.DecompressString(json);
+            Categories = JsonSerializer.Deserialize<List<CategoryModel>>(json) ?? [];
             CategoryList = Categories.ToArray();
-            List = CategoryList.GroupBy(x => x.Type);
-            IsOK = true;
-            Console.WriteLine("加载成功");
+            List = CategoryList.GroupBy(x => x.Type).ToArray();
+            IsLoading = false;
             return;
         }
 
         if (string.IsNullOrEmpty(Key)) return;
+        CategoryData = new CategoryModel();
         CategoryData = await httpClient.GetFromJsonAsync<CategoryModel>($"{DataStatic.BaseUrl}/Category/{Key.GetUrl()}") ?? new CategoryModel();
         if (string.IsNullOrEmpty(Key)) return;
         CategoryData.Books = await httpClient.GetFromJsonAsync<List<BookModel>>($"{DataStatic.BaseUrl}/GetCategoryBook/{Key.GetUrl()}") ?? [];
-        IsOK = true;
-        Console.WriteLine("加载成功");
+        IsLoading = false;
     }
 
     private void Search(string key)

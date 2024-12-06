@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Json;
 using BookSpring.DataLib;
 using BookSpring.DataLib.DataModels;
 using Microsoft.AspNetCore.Authorization;
@@ -14,9 +15,10 @@ public class CategoryController(
     IHttpContextAccessor httpContextAccessor) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CategoryModel>>> GetCategories()
+    public async Task<ActionResult<string>> GetCategories()
     {
-        return await context.Categories.ToListAsync();
+        var list = await context.Categories.ToListAsync();
+        return Convert.ToBase64String(GZipServer.Compress(JsonSerializer.SerializeToUtf8Bytes(list)));
     }
 
     [HttpGet("{id}")]
