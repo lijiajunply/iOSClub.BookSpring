@@ -38,6 +38,15 @@
                     <MudMenuItem Icon="@Icons.Material.Rounded.LocalLibrary" Href="/Library">
                         图书馆
                     </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Rounded.Category" Href="/Category">
+                        书籍列表
+                    </MudMenuItem>
+                    @if (Member.Identity == "Admin")
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Rounded.AdminPanelSettings" Href="/Admin">
+                            数据面板
+                        </MudMenuItem>
+                    }
                     <MudMenuItem Icon="@Icons.Material.Rounded.Logout" Href="/Logout">
                         注销
                     </MudMenuItem>

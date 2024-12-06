@@ -18,15 +18,21 @@
                 <MudText Typo="Typo.h5">基本信息</MudText>
                 @if (IsLoading)
                 {
-                    <MudSkeleton Height="70px"/>
-                    <MudSkeleton Height="70px"/>
+                    <div>
+                        <MudSkeleton Height="60px"/>
+                        <MudSkeleton Height="60px"/>
+                    </div>
+                    <MudSkeleton Height="16px" Width="30px"/>
                 }
-                <MudList T="string">
-                    <MudListItem Text="书籍名称" SecondaryText="@Data.Name"
-                                 Icon="@Icons.Material.Filled.Book"/>
-                    <MudListItem Text="简介" SecondaryText="@Data.Description"
-                                 Icon="@Icons.Material.Filled.Description"/>
-                </MudList>
+                else
+                {
+                    <MudList T="string">
+                        <MudListItem Text="书籍名称" SecondaryText="@Data.Name"
+                                     Icon="@Icons.Material.Filled.Book"/>
+                        <MudListItem Text="简介" SecondaryText="@Data.Description"
+                                     Icon="@Icons.Material.Filled.Description"/>
+                    </MudList>
+                }
                 <div>
                     @foreach (var s in Data.Category.Split(","))
                     {
@@ -38,64 +44,67 @@
         </MudPaper>
     </MudItem>
     <MudItem xs="12" sm="6" md="6">
-        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
-            <MudText Typo="Typo.h5">关于借阅/下载</MudText>
-            <br/>
-            @if (IsLoading)
-            {
-                <MudSkeleton Height="70px"/>
-                <MudSkeleton Height="70px"/>
-            }
-            @if (string.IsNullOrEmpty(Data.EBookUrl))
-            {
-                @if (string.IsNullOrEmpty(Data.LendToId))
+        @if (!string.IsNullOrEmpty(Member.Id))
+        {
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+                <MudText Typo="Typo.h5">关于借阅/下载</MudText>
+                <br/>
+                @if (IsLoading)
                 {
-                    if (Data.CreatedById != Member.Id)
+                    <MudSkeleton Height="70px"/>
+                    <MudSkeleton Height="70px"/>
+                }
+                @if (string.IsNullOrEmpty(Data.EBookUrl))
+                {
+                    @if (string.IsNullOrEmpty(Data.LendToId))
                     {
-                        <MudButton Color="Color.Primary" OnClick="LendBook"
-                                   StartIcon="@Icons.Material.Rounded.BookmarkAdd">
-                            去借阅
-                        </MudButton>
+                        if (Data.CreatedById != Member.Id)
+                        {
+                            <MudButton Color="Color.Primary" OnClick="LendBook"
+                                       StartIcon="@Icons.Material.Rounded.BookmarkAdd">
+                                去借阅
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.h6">现在还没被借走</MudText>
+                        }
                     }
                     else
                     {
-                        <MudText Typo="Typo.h6">现在还没被借走</MudText>
+                        if (Data.LendToId == Member.Id)
+                        {
+                            <MudStack>
+                                <MudList T="string">
+                                    <MudListItem Text="书籍名称" SecondaryText="@Data.LendDate"
+                                                 Icon="@Icons.Material.Filled.CalendarMonth"/>
+                                    <MudListItem Text="简介" SecondaryText="@Data.ReturnDate"
+                                                 Icon="@Icons.Material.Filled.AccessTimeFilled"/>
+                                </MudList>
+                                <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Rounded.AssignmentReturn">
+                                    现在就还书
+                                </MudButton>
+                            </MudStack>
+                        }
+                        else
+                        {
+                            <MudStack>
+                                <MudText Typo="Typo.h6">这本书已经被借走了！</MudText>
+                                <MudText>什么时候能借？</MudText>
+                                <MudText>@($"{Data.ReturnDate}以后")</MudText>
+                            </MudStack>
+                        }
                     }
                 }
                 else
                 {
-                    if (Data.LendToId == Member.Id)
-                    {
-                        <MudStack>
-                            <MudList T="string">
-                                <MudListItem Text="书籍名称" SecondaryText="@Data.LendDate"
-                                             Icon="@Icons.Material.Filled.CalendarMonth"/>
-                                <MudListItem Text="简介" SecondaryText="@Data.ReturnDate"
-                                             Icon="@Icons.Material.Filled.AccessTimeFilled"/>
-                            </MudList>
-                            <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Rounded.AssignmentReturn">
-                                现在就还书
-                            </MudButton>
-                        </MudStack>
-                    }
-                    else
-                    {
-                        <MudStack>
-                            <MudText Typo="Typo.h6">这本书已经被借走了！</MudText>
-                            <MudText>什么时候能借？</MudText>
-                            <MudText>@($"{Data.ReturnDate}以后")</MudText>
-                        </MudStack>
-                    }
+                    <MudButton Color="Color.Primary" OnClick="Download"
+                               StartIcon="@Icons.Material.Rounded.Download">
+                        下载电子书
+                    </MudButton>
                 }
-            }
-            else
-            {
-                <MudButton Color="Color.Primary" OnClick="Download"
-                           StartIcon="@Icons.Material.Rounded.Download">
-                    下载电子书
-                </MudButton>
-            }
-        </MudPaper>
+            </MudPaper>
+        }
     </MudItem>
 </MudGrid>
 
@@ -132,6 +141,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        Data = new BookModel();
         IsLoading = true;
         Data = await httpClient.GetFromJsonAsync<BookModel>($"{DataStatic.BaseUrl}/Book/{Id}") ?? new BookModel();
         IsLoading = false;
