@@ -14,7 +14,7 @@
 
 <MudGrid>
     <MudItem xs="12" sm="6" md="6">
-        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+        <MudPaper Elevation="25" Class="pa-4 rounded-lg" Style="height: 100%;">
             <MudGrid Style="height: 100%;">
                 <MudItem xs="12" sm="6" md="6">
                     <MudPaper Class="d-flex justify-center flex-grow-1 gap-4 ava" Elevation="0">
@@ -43,7 +43,7 @@
         </MudPaper>
     </MudItem>
     <MudItem xs="12" sm="6" md="6">
-        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;text-align: center">
+        <MudPaper Elevation="25" Class="pa-4 rounded-lg" Style="height: 100%;text-align: center">
             <MudList T="string" Class="mx-auto mt-4">
                 <MudListItem OnClick="@(() => Nav.NavigateTo("/Dashboard#创建的书籍"))" Icon="@Icons.Material.Rounded.Book" Text="创建书籍" SecondaryText="@Member.CreatedBooks.Count.ToString()"/>
                 <MudListItem OnClick="@(() => Nav.NavigateTo("/Dashboard#借到的书籍"))" Icon="@Icons.Material.Filled.Bookmarks" Text="借出" SecondaryText="@Member.LendBooks.Count.ToString()"/>
@@ -52,11 +52,13 @@
     </MudItem>
 </MudGrid>
 
-<MudPaper Elevation="25" Class="mt-10 mb-5">
+<MudPaper Elevation="25" Class="mt-10 mb-5 rounded-lg">
     <MudToolBar>
         <MudText id="创建的书籍" Typo="Typo.h6">创建的书籍</MudText>
         <MudSpacer/>
-        <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>
+        <MudTooltip Text="添加图书">
+            <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>
+        </MudTooltip>
     </MudToolBar>
     <MudTable T="BookModel" Hover
               Items="@Member.CreatedBooks"
@@ -104,7 +106,7 @@
     </MudTable>
 </MudPaper>
 
-<MudPaper Elevation="25" Class="mt-10 mb-5">
+<MudPaper Elevation="25" Class="mt-10 mb-5 rounded-lg">
     <MudToolBar>
         <MudText id="借到的书籍" Typo="Typo.h6">借到的书籍</MudText>
         <MudSpacer/>
@@ -158,6 +160,10 @@
         </PagerContent>
     </MudTable>
 </MudPaper>
+
+<MudScrollToTop>
+    <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowUpward" />
+</MudScrollToTop>
 
 @code{
 

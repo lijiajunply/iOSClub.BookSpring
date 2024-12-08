@@ -122,9 +122,13 @@
                        style="left:-9999px;position:absolute;"/>
                 <label for="fileSelector">更换文件</label>
             </MudButton>
-            <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="EditBook"/>
-            <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error"
-                           OnClick="Delete"/>
+            <MudTooltip Text="编辑图书">
+                <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="EditBook"/>
+            </MudTooltip>
+            <MudTooltip Text="删除">
+                <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error"
+                               OnClick="Delete"/>
+            </MudTooltip>
         </MudToolBar>
     </MudPaper>
 }

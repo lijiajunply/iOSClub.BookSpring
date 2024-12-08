@@ -4,7 +4,7 @@
 @layout MainLayout
 
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="0">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                        OnClick="@((e) => DrawerToggle())"/>
         <MudButton Href="/"
@@ -79,7 +79,7 @@
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent>
-        <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+        <MudContainer Class="mt-6 px-8" MaxWidth="MaxWidth.False">
             @Body
         </MudContainer>
     </MudMainContent>

@@ -1,7 +1,145 @@
 ﻿@page "/Admin"
+@using System.Diagnostics.CodeAnalysis
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using BookSpring.WebApp.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient httpClient
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager Nav
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>数据面板 - iLibrary</PageTitle>
 
+<MudPaper Elevation="25" Class="rounded-lg">
+    <MudStack>
+        <MudToolBar>
+            <MudText Typo="Typo.h6">人员信息</MudText>
+        </MudToolBar>
+        <MudTable T="UserModel" Hover
+                  Items="@Users"
+                  Loading="@(IsLoading)"
+                  Class="mt-5 rounded-lg"
+                  RowEditCommit="i => Task.Run(() => EditDoneAsync(i))"
+                  CanCancelEdit="true"
+                  ReadOnly="@(Member.Identity != "Admin")"
+                  EditTrigger="TableEditTrigger.EditButton"
+                  Filter="new Func<UserModel, bool>(FilterFunc)"
+                  Breakpoint="Breakpoint.Sm"
+                  RowClass="cursor-pointer">
+            <ToolBarContent>
+                <MudTextField @bind-Value="SearchString" Placeholder="Search" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+                </MudTextField>
+                <MudHidden Breakpoint="Breakpoint.Xs">
+                    <MudSpacer/>
+                    <MudSelect @bind-Value="SearchType" Label="选择搜索类型" Placeholder="请选择">
+                        <MudSelectItem Value="@("姓名")">姓名</MudSelectItem>
+                        <MudSelectItem Value="@("学号")">学号</MudSelectItem>
+                    </MudSelect>
+                </MudHidden>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<UserModel, object>(x=>x.Name)">姓名</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<UserModel, object>(x=>x.Id)">学号</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<UserModel, object>(x=>x.Identity)">权限</MudTableSortLabel>
+                </MudTh>
+                <MudTh>操作</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="姓名">@context.Name</MudTd>
+                <MudTd DataLabel="学号">@context.Id</MudTd>
+                <MudTd DataLabel="权限">@context.Identity</MudTd>
+                <MudTd DataLabel="操作">
+                    <MudTooltip Text="删除该用户">
+                        <MudIconButton Color="Color.Error" Icon="@Icons.Material.Rounded.Delete"/>
+                    </MudTooltip>
+                </MudTd>
+            </RowTemplate>
+            <RowEditingTemplate>
+                <MudTd DataLabel="姓名">
+                    <MudTextField @bind-Value="context.Name" Required/>
+                </MudTd>
+                <MudTd DataLabel="学号">
+                    <MudTextField @bind-Value="context.Id" Required/>
+                </MudTd>
+                <MudTd DataLabel="操作">
+                    <MudTooltip Text="删除该用户">
+                        <MudIconButton Color="Color.Error" Icon="@Icons.Material.Rounded.Delete"/>
+                    </MudTooltip>
+                </MudTd>
+            </RowEditingTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] { 10, 25, int.MaxValue }"
+                               RowsPerPageString="每页行数："
+                               InfoFormat="{first_item}-{last_item}, 共{all_items}本书"
+                               AllItemsText="全部"
+                               HorizontalAlignment="@HorizontalAlignment.Center"/>
+            </PagerContent>
+        </MudTable>
+    </MudStack>
+</MudPaper>
+
+
 @code {
-    
+
+    [CascadingParameter(Name = "Member")]
+    [NotNull]
+    public UserModel? Member { get; set; }
+
+    private UserModel[] Users { get; set; } = [];
+    private bool IsLoading { get; set; }
+    public string SearchString { get; set; } = "";
+    public string SearchType { get; set; } = "姓名";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        IsLoading = true;
+        var jwt = (JwtProvider)authStateProvider;
+        var cookie = await jwt.GetCookie();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+
+        var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Admins");
+        var json = await response.Content.ReadAsStringAsync();
+        json = GZipServer.DecompressString(json);
+        Users = JsonSerializer.Deserialize<UserModel[]>(json) ?? [];
+        IsLoading = false;
+    }
+
+    private async Task EditDoneAsync(object? obj)
+    {
+        if (obj is not BookModel book) return;
+        var jwt = (JwtProvider)authStateProvider;
+        var cookie = await jwt.GetCookie();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+        var response = await httpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/Book", book);
+        if (response.IsSuccessStatusCode)
+        {
+            var newBook = await response.Content.ReadFromJsonAsync<BookModel>();
+            if (newBook is null) return;
+            Snackbar.Add("更改书籍成功", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("更改失败", Severity.Error);
+        }
+    }
+
+    private bool FilterFunc(UserModel element)
+    {
+        if (string.IsNullOrWhiteSpace(SearchString) && SearchType != "IsEBook") return true;
+        return SearchType switch
+        {
+            "姓名" => element.Name.Contains(SearchString, StringComparison.CurrentCultureIgnoreCase),
+            "学号" => element.Id.Contains(SearchString, StringComparison.CurrentCultureIgnoreCase),
+            _ => false
+        };
+    }
+
 }

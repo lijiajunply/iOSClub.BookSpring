@@ -17,30 +17,42 @@
 
 <PageTitle>所有图书 - iLibrary</PageTitle>
 
-<MudPaper Elevation="25">
+<MudPaper Elevation="2" Class="rounded-lg">
     <MudToolBar>
         <MudText Typo="Typo.h6">所有书籍</MudText>
         <MudSpacer/>
         @if (Member.Identity == "Admin")
         {
-            <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Rounded.UploadFile" OnClick="UploadFiles"/>
-            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile">
-                <ActivatorContent>
-                    <MudIconButton Icon="@Icons.Material.Filled.Upload"/>
-                </ActivatorContent>
-            </MudFileUpload>
-            <MudIconButton OnClick="JsonDownload" Icon="@Icons.Material.Filled.CloudDownload"/>
+            <MudHidden Breakpoint="Breakpoint.Xs">
+                <MudTooltip Text="上传数据文件">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile">
+                        <ActivatorContent>
+                            <MudIconButton Icon="@Icons.Material.Filled.Upload"/>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                </MudTooltip>
+                <MudTooltip Text="下载数据文件">
+                    <MudIconButton OnClick="JsonDownload" Icon="@Icons.Material.Filled.CloudDownload"/>
+                </MudTooltip>
+            </MudHidden>
+            <MudTooltip Text="批量上传书籍文件">
+                <MudIconButton Class="ml-3" Icon="@Icons.Material.Rounded.UploadFile" OnClick="UploadFiles"/>
+            </MudTooltip>
         }
         @if (!string.IsNullOrEmpty(Member.Id))
         {
-            <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>   
+            <MudHidden Breakpoint="Breakpoint.Xs">
+                <MudTooltip Text="添加书籍">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OpenDialogAsync"/>
+                </MudTooltip>
+            </MudHidden>
         }
     </MudToolBar>
     <meter min="0" max="1" id="meter" style="@(IsUpload ? "width:100%" : "display: none;width:100%")" value="0"></meter>
     <MudTable T="BookModel" Hover
               Items="@Books"
               Loading="@(IsLoading)"
-              Class="mt-5"
+              Class="mt-5 rounded-lg"
               RowEditCommit="i => Task.Run(() => EditDoneAsync(i))"
               CanCancelEdit="true"
               ReadOnly="@(Member.Identity != "Admin")"
@@ -59,12 +71,14 @@
                               AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
                 </MudTextField>
             }
-            <MudSpacer/>
-            <MudSelect @bind-Value="SearchType" Label="选择搜索类型" Placeholder="请选择">
-                <MudSelectItem Value="@("书名")">书名</MudSelectItem>
-                <MudSelectItem Value="@("标签")">标签</MudSelectItem>
-                <MudSelectItem Value="@("IsEBook")">电子/纸质</MudSelectItem>
-            </MudSelect>
+            <MudHidden Breakpoint="Breakpoint.Xs">
+                <MudSpacer/>
+                <MudSelect @bind-Value="SearchType" Label="选择搜索类型" Placeholder="请选择">
+                    <MudSelectItem Value="@("书名")">书名</MudSelectItem>
+                    <MudSelectItem Value="@("标签")">标签</MudSelectItem>
+                    <MudSelectItem Value="@("IsEBook")">电子/纸质</MudSelectItem>
+                </MudSelect>
+            </MudHidden>
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
@@ -121,6 +135,18 @@
         </PagerContent>
     </MudTable>
 </MudPaper>
+
+@if (!string.IsNullOrEmpty(Member.Id))
+{
+    <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+        <MudFab Style="left: 30px;bottom: 30px;position: fixed" Color="Color.Primary"
+                StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDialogAsync"/>
+    </MudHidden>
+}
+
+<MudScrollToTop>
+    <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowUpward"/>
+</MudScrollToTop>
 
 @code {
 

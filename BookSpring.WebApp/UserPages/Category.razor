@@ -16,8 +16,8 @@
 @if (string.IsNullOrEmpty(Key))
 {
     <MudStack>
-        <MudTextField T="string" ValueChanged="Search"
-                      Label="搜索列表/标签" Variant="Variant.Filled"/>
+        <MudTextField T="string" ValueChanged="Search" Label="搜索" Variant="Variant.Outlined" 
+                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" />
         @if (string.IsNullOrEmpty(SearchKey))
         {
             if (IsLoading)
@@ -35,7 +35,7 @@
                     @foreach (var context in item)
                     {
                         <MudItem xs="6" sm="4" md="3">
-                            <MudCard>
+                            <MudCard Class="rounded-lg">
                                 <MudCardContent>
                                     <MudText>@context.Name</MudText>
                                 </MudCardContent>
@@ -56,7 +56,7 @@
                 @foreach (var item in CategoryList)
                 {
                     <MudItem xs="6" sm="4" md="3">
-                        <MudCard>
+                        <MudCard Class="rounded-lg">
                             <MudCardContent>
                                 <MudText>@item.Name</MudText>
                             </MudCardContent>
@@ -75,7 +75,7 @@
 else
 {
     <MudStack>
-        <MudPaper Class="pa-5">
+        <MudPaper Elevation="2" Class="pa-5 rounded-lg">
             <MudToolBar>
                 <div>
                     <MudText Typo="Typo.h6">@($"书籍列表 - {Key}")</MudText>
@@ -104,11 +104,11 @@ else
                 }
             </MudToolBar>
         </MudPaper>
-        <MudPaper Elevation="25">
+        <MudPaper Elevation="2" Class="rounded-lg">
             <MudTable T="BookModel" Hover
                       Items="@CategoryData.Books"
-                      Class="mt-5"
                       Loading="@IsLoading"
+                      Class="rounded-lg"
                       ReadOnly
                       Breakpoint="Breakpoint.Sm"
                       RowClass="cursor-pointer">
@@ -154,6 +154,10 @@ else
         </MudPaper>
     </MudStack>
 }
+
+<MudScrollToTop>
+    <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowUpward" />
+</MudScrollToTop>
 
 @code {
 

@@ -34,52 +34,6 @@ public class BookController(
         return bookModel;
     }
 
-    [TokenActionFilter]
-    [Authorize(Roles = "Admin")]
-    [HttpPost("/AddBooks")]
-    public async Task<ActionResult> AddBooks([FromBody] string content)
-    {
-        var member = httpContextAccessor.HttpContext?.User.GetUser();
-        if (member == null) return NotFound();
-
-        member = await context.Users
-            .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
-        if (member is not { Identity: "Admin" }) return NotFound();
-
-        content = GZipServer.DecompressString(content);
-
-        var data = JsonSerializer.Deserialize<BookModel[]>(content) ?? [];
-
-        foreach (var model in data)
-        {
-            if (await context.Books.AnyAsync(e => e.Id == model.Id)) continue;
-            model.Categories.Clear();
-            var categories = model.Category.Split(',');
-            foreach (var category in categories)
-            {
-                if (model.Categories.Any(x => x.Name == category)) continue;
-                var cate = await context.Categories.FirstOrDefaultAsync(x => x.Name == category);
-                if (cate == null)
-                {
-                    cate = new CategoryModel
-                    {
-                        Name = category
-                    };
-                    cate.Key = DataTool.StringToHash(cate.ToString());
-                    context.Categories.Add(cate);
-                    await context.SaveChangesAsync();
-                }
-
-                model.Categories.Add(cate);
-            }
-
-            await context.Books.AddAsync(model);
-        }
-
-        await context.SaveChangesAsync();
-        return Ok();
-    }
-
     #region 图书管理
 
     // POST: /Book
