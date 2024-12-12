@@ -33,14 +33,14 @@
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
         var response = await HttpClient.GetAsync($"{DataStatic.BaseUrl}/User");
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        var json = await response.Content.ReadAsStringAsync();
+        if (response.StatusCode != HttpStatusCode.OK)
         {
-            Snackbar.Add("登录已过期，请重新登录", Severity.Error);
+            Snackbar.Add(json, Severity.Error);
             await jwt.Logout();
         }
         else
         {
-            var json = await response.Content.ReadAsStringAsync();
             json = GZipServer.DecompressString(json);
             var s = JsonSerializer.Deserialize<UserModel>(json);
             if (s != null)

@@ -19,11 +19,11 @@ public class AdminsController(
     public async Task<ActionResult> AddBooks([FromBody] string content)
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
-        if (member == null) return NotFound();
+        if (member == null) return NotFound("用户未登录或验证已超时");
 
         member = await context.Users
             .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
-        if (member is not { Identity: "Admin" }) return NotFound();
+        if (member is not { Identity: "Admin" }) return NotFound("找不到该用户或权限不够");
 
         content = GZipServer.DecompressString(content);
 
@@ -70,7 +70,7 @@ public class AdminsController(
     public async Task<IActionResult> UpdateUserInfo([FromBody] UserModel userModel)
     {
         var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userModel.Id);
-        if (user == null) return NotFound();
+        if (user == null) return NotFound("用户未登录或验证已超时");
 
         user.Update(userModel);
         await context.SaveChangesAsync();
@@ -81,7 +81,7 @@ public class AdminsController(
     public async Task<IActionResult> DeleteUser(string id)
     {
         var user = await context.Users.FirstOrDefaultAsync(x => x.Id == id);
-        if (user == null) return NotFound();
+        if (user == null) return NotFound("用户未登录或验证已超时");
 
         context.Users.Remove(user);
         await context.SaveChangesAsync();

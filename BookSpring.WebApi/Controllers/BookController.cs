@@ -28,7 +28,7 @@ public class BookController(
 
         if (bookModel == null)
         {
-            return NotFound();
+            return NotFound("找不到该书籍");
         }
 
         return bookModel;
@@ -161,17 +161,17 @@ public class BookController(
     public async Task<IActionResult> Lend(BookModel bookModel)
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
-        if (member == null) return NotFound();
+        if (member == null) return NotFound("用户未登录或验证已超时");
         member = await context.Users
             .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
-        if (member == null) return NotFound();
+        if (member == null) return NotFound("找不到用户");
 
         var book = await context.Books
             .Include(x => x.LendTo)
             .FirstOrDefaultAsync(x => x.Id == bookModel.Id);
 
         if (book == null || book.CreatedById == member.Id || book.LendToId == member.Id)
-            return NotFound();
+            return NotFound("找不到该书籍");
 
         book.LendTo = member;
         book.LendDate = bookModel.LendDate;

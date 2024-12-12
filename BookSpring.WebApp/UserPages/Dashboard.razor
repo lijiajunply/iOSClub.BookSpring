@@ -190,6 +190,10 @@
                 if (newBook is null) return;
                 Snackbar.Add("添加书籍成功", Severity.Success);
                 Member.CreatedBooks.Add(newBook);
+            }else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Snackbar.Add(content, Severity.Error);
             }
         }
     }

@@ -235,7 +235,8 @@ else
             }
             else
             {
-                Snackbar.Add("更改标签失败", Severity.Error);
+                var content = await response.Content.ReadAsStringAsync();
+                Snackbar.Add(content, Severity.Error);
             }
         }
     }

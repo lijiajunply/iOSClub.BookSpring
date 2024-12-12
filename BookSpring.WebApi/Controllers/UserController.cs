@@ -23,11 +23,11 @@ public class UserController(
     public async Task<ActionResult<string>> GetData()
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
-        if (member == null) return NotFound();
+        if (member == null) return NotFound("用户未登录或验证已超时");
         member = await context.Users.Include(x => x.LendBooks)
             .Include(x => x.CreatedBooks)
             .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
-        if (member == null) return NotFound();
+        if (member == null) return NotFound("找不到用户");
 
         var compressAfterByte = GZipServer.Compress(JsonSerializer.SerializeToUtf8Bytes(member));
         return Convert.ToBase64String(compressAfterByte);
@@ -42,17 +42,17 @@ public class UserController(
 
         var client = httpClientFactory.CreateClient();
         var response = await client.PostAsJsonAsync("https://www.xauat.site/api/Member/Login", login);
-        if (!response.IsSuccessStatusCode) return NotFound();
+        if (!response.IsSuccessStatusCode) return NotFound("未找到iMember身份信息");
 
         var Jwt = await response.Content.ReadAsStringAsync();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Jwt);
         response = await client.GetAsync("https://www.xauat.site/api/Member/GetData");
 
-        if (!response.IsSuccessStatusCode) return NotFound();
+        if (!response.IsSuccessStatusCode) return NotFound("iMember异常");
 
         var json = await response.Content.ReadAsStringAsync();
         var jsonDoc = JsonNode.Parse(json);
-        if (jsonDoc == null) return NotFound();
+        if (jsonDoc == null) return NotFound("iMember异常");
         var userData = new UserModel()
         {
             Name = jsonDoc["userName"]?.GetValue<string>() ?? "",
@@ -73,9 +73,9 @@ public class UserController(
     public async Task<ActionResult<string>> GetAdminData()
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
-        if (member == null) return NotFound();
+        if (member == null) return NotFound("用户未登录或验证已超时");
         member = await context.Users.FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
-        if (member is not { Identity: "Admin" }) return NotFound();
+        if (member is not { Identity: "Admin" }) return NotFound("找不到用户");
 
         var userList = await context.Users.Include(x => x.CreatedBooks).Include(x => x.LendBooks).ToArrayAsync();
 

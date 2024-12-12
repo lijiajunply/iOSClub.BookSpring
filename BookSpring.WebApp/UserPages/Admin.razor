@@ -6,8 +6,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient httpClient
 @inject AuthenticationStateProvider authStateProvider
-@inject NavigationManager Nav
-@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <PageTitle>数据面板 - iLibrary</PageTitle>
@@ -69,9 +67,16 @@
                 <MudTd DataLabel="学号">
                     <MudTextField @bind-Value="context.Id" Required/>
                 </MudTd>
+                <MudTd DataLabel="权限">
+                    <MudSelect @bind-Value="context.Identity"
+                               Label="权限">
+                        <MudSelectItem Value="@("Admin")">管理员</MudSelectItem>
+                        <MudSelectItem Value="@("Member")">普通成员</MudSelectItem>
+                    </MudSelect>
+                </MudTd>
                 <MudTd DataLabel="操作">
                     <MudTooltip Text="删除该用户">
-                        <MudIconButton Color="Color.Error" Icon="@Icons.Material.Rounded.Delete"/>
+                        <MudIconButton OnClick="async () => await DeleteAsync(context)" Color="Color.Error" Icon="@Icons.Material.Rounded.Delete"/>
                     </MudTooltip>
                 </MudTd>
             </RowEditingTemplate>
@@ -114,16 +119,16 @@
 
     private async Task EditDoneAsync(object? obj)
     {
-        if (obj is not BookModel book) return;
+        if (obj is not UserModel value) return;
         var jwt = (JwtProvider)authStateProvider;
         var cookie = await jwt.GetCookie();
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
-        var response = await httpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/Book", book);
+        var response = await httpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/Admins", value);
         if (response.IsSuccessStatusCode)
         {
             var newBook = await response.Content.ReadFromJsonAsync<BookModel>();
             if (newBook is null) return;
-            Snackbar.Add("更改书籍成功", Severity.Success);
+            Snackbar.Add("更改用户成功", Severity.Success);
         }
         else
         {
@@ -140,6 +145,27 @@
             "学号" => element.Id.Contains(SearchString, StringComparison.CurrentCultureIgnoreCase),
             _ => false
         };
+    }
+    
+    private async Task DeleteAsync(UserModel element)
+    {
+        if (element.Identity == "Admin")
+        {
+            Snackbar.Add("不可删除管理员", Severity.Error);
+            return;
+        }
+        var jwt = (JwtProvider)authStateProvider;
+        var cookie = await jwt.GetCookie();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+        var response = await httpClient.DeleteAsync($"{DataStatic.BaseUrl}/Admins/{element.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("删除用户成功", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("删除失败", Severity.Error);
+        }
     }
 
 }

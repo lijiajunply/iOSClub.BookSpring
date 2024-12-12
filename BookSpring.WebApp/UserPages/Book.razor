@@ -147,7 +147,9 @@
     {
         Data = new BookModel();
         IsLoading = true;
-        Data = await httpClient.GetFromJsonAsync<BookModel>($"{DataStatic.BaseUrl}/Book/{Id}") ?? new BookModel();
+        var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/Book/{Id}");
+        if (!response.IsSuccessStatusCode) return;
+        Data = await response.Content.ReadFromJsonAsync<BookModel>() ?? new BookModel();
         IsLoading = false;
     }
 
@@ -170,6 +172,11 @@
                 Data.LendDate = book.LendDate;
                 Data.ReturnDate = book.ReturnDate;
                 Data.LendToId = book.LendToId;
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Snackbar.Add(content, Severity.Error);
             }
         }
     }
@@ -200,6 +207,11 @@
                 Data.Description = book.Description;
                 Data.Category = book.Category;
             }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Snackbar.Add(content, Severity.Error);
+            }
         }
     }
 
@@ -214,6 +226,11 @@
             Snackbar.Add("删除成功", Severity.Success);
             Nav.NavigateTo("/Library");
         }
+        else
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            Snackbar.Add(content, Severity.Error);
+        }
     }
 
     private async Task updateImageDisplay(ChangeEventArgs arg)
@@ -227,6 +244,11 @@
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("更换成功", Severity.Success);
+        }
+        else
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            Snackbar.Add(content, Severity.Error);
         }
     }
 

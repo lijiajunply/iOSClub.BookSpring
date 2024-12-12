@@ -26,7 +26,7 @@ public class CategoryController(
     {
         var category = await context.Categories
             .FirstOrDefaultAsync(x => x.Name == id);
-        if (category == null) return NotFound();
+        if (category == null) return NotFound("找不到该标签");
         return category;
     }
     
@@ -36,7 +36,7 @@ public class CategoryController(
         var category = await context.Categories
             .Include(x => x.Books)
             .FirstOrDefaultAsync(x => x.Name == id);
-        if (category == null) return NotFound();
+        if (category == null) return NotFound("找不到该书籍");
         return Convert.ToBase64String(GZipServer.Compress(JsonSerializer.SerializeToUtf8Bytes(category.Books)));
     }
 
@@ -46,15 +46,15 @@ public class CategoryController(
     public async Task<ActionResult> UpdateCategory(CategoryModel categoryModel)
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
-        if (member == null) return NotFound();
+        if (member == null) return NotFound("用户未登录或验证已超时");
         member = await context.Users
             .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
-        if (member is not { Identity: "Admin" }) return NotFound();
+        if (member is not { Identity: "Admin" }) return NotFound("找不到该用户或权限不够");
 
         var category = await context.Categories.Include(x => x.Books)
             .FirstOrDefaultAsync(x => x.Key == categoryModel.Key);
 
-        if (category == null) return NotFound();
+        if (category == null) return NotFound("找不到该书籍");
 
         category.Description = categoryModel.Description;
         category.Type = categoryModel.Type;
