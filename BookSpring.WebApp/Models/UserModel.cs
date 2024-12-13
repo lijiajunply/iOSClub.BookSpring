@@ -22,9 +22,9 @@ public class UserModel
     public string Identity { get; set; } = "Member";
 
     // [JsonPropertyName("createdBooks")]
-    public List<BookModel> CreatedBooks { get; init; } = [];
+    public List<BookModel> CreatedBooks { get; set; } = [];
     // [JsonPropertyName("lendBooks")]
-    public List<BookModel> LendBooks { get; init; } = [];
+    public List<BookModel> LendBooks { get; set; } = [];
 
     public void Update(UserModel model)
     {

@@ -1,6 +1,7 @@
 ﻿@page "/Dashboard"
 @using System.Diagnostics.CodeAnalysis
 @using System.Net.Http.Headers
+@using System.Text.Json
 @using BookSpring.WebApp.Dialogs
 @using BookSpring.WebApp.Models
 @using Microsoft.AspNetCore.Components.Authorization
@@ -32,22 +33,42 @@
                     </MudPaper>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="6">
-                    <MudList T="string" Class="mx-auto mt-4">
-                        <MudListItem Icon="@Icons.Material.Rounded.People"
-                                     Text="姓名" SecondaryText="@Member.Name"/>
-                        <MudListItem Icon="@Icons.Material.Rounded.Numbers"
-                                     Text="学号" SecondaryText="@Member.Id"/>
-                    </MudList>
+                    @if (IsLoading)
+                    {
+                        <MudSkeleton Height="70px"/>
+                        <MudSkeleton Height="70px"/>
+                    }
+                    else
+                    {
+                        <MudList T="string" Class="mx-auto mt-4">
+                            <MudListItem Icon="@Icons.Material.Rounded.People"
+                                         Text="姓名" SecondaryText="@Member.Name"/>
+                            <MudListItem Icon="@Icons.Material.Rounded.Numbers"
+                                         Text="学号" SecondaryText="@Member.Id"/>
+                        </MudList>
+                    }
                 </MudItem>
             </MudGrid>
         </MudPaper>
     </MudItem>
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Elevation="25" Class="pa-4 rounded-lg" Style="height: 100%;text-align: center">
-            <MudList T="string" Class="mx-auto mt-4">
-                <MudListItem OnClick="@(() => Nav.NavigateTo("/Dashboard#创建的书籍"))" Icon="@Icons.Material.Rounded.Book" Text="创建书籍" SecondaryText="@Member.CreatedBooks.Count.ToString()"/>
-                <MudListItem OnClick="@(() => Nav.NavigateTo("/Dashboard#借到的书籍"))" Icon="@Icons.Material.Filled.Bookmarks" Text="借出" SecondaryText="@Member.LendBooks.Count.ToString()"/>
-            </MudList>
+            @if (IsLoading)
+            {
+                <MudSkeleton Height="70px"/>
+                <MudSkeleton Height="70px"/>
+            }
+            else
+            {
+                <MudList T="string" Class="mx-auto mt-4">
+                    <MudListItem OnClick="@(() => Nav.NavigateTo("/Dashboard#创建的书籍"))"
+                                 Icon="@Icons.Material.Rounded.Book" Text="创建书籍"
+                                 SecondaryText="@Member.CreatedBooks.Count.ToString()"/>
+                    <MudListItem OnClick="@(() => Nav.NavigateTo("/Dashboard#借到的书籍"))"
+                                 Icon="@Icons.Material.Filled.Bookmarks" Text="借出"
+                                 SecondaryText="@Member.LendBooks.Count.ToString()"/>
+                </MudList>
+            }
         </MudPaper>
     </MudItem>
 </MudGrid>
@@ -63,6 +84,7 @@
     <MudTable T="BookModel" Hover
               Items="@Member.CreatedBooks"
               Class="mt-5"
+              Loading="@IsLoading"
               ReadOnly
               Breakpoint="Breakpoint.Sm"
               RowClass="cursor-pointer">
@@ -119,6 +141,7 @@
               Items="@Member.LendBooks"
               Class="mt-5"
               ReadOnly
+              Loading="@IsLoading"
               Breakpoint="Breakpoint.Sm"
               RowClass="cursor-pointer">
         <HeaderContent>
@@ -162,7 +185,7 @@
 </MudPaper>
 
 <MudScrollToTop>
-    <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowUpward" />
+    <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowUpward"/>
 </MudScrollToTop>
 
 @code{
@@ -170,10 +193,35 @@
     [CascadingParameter(Name = "Member")]
     [NotNull]
     public UserModel? Member { get; set; }
-    
+
+    private bool IsLoading { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        IsLoading = true;
+        var jwt = (JwtProvider)authStateProvider;
+        var cookie = await jwt.GetCookie();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cookie);
+        var response = await httpClient.GetAsync($"{DataStatic.BaseUrl}/UserAll");
+        if (response.IsSuccessStatusCode)
+        {
+            var data = await response.Content.ReadAsStringAsync();
+            data = GZipServer.DecompressString(data);
+            var book = JsonSerializer.Deserialize<UserBookModel>(data)!;
+            Member.CreatedBooks = book.CreatedBooks;
+            Member.LendBooks = book.LendBooks;
+        }
+        else
+        {
+            Snackbar.Add("获取用户信息失败", Severity.Error);
+        }
+
+        IsLoading = false;
+    }
+
     private async Task OpenDialogAsync()
     {
-        var options = new DialogOptions(){BackgroundClass="my-dialog-class"};
+        var options = new DialogOptions() { BackgroundClass = "my-dialog-class" };
         var a = await DialogService.ShowAsync<AddBookDialog>("添加书籍", options);
         var result = await a.Result;
 
@@ -190,13 +238,15 @@
                 if (newBook is null) return;
                 Snackbar.Add("添加书籍成功", Severity.Success);
                 Member.CreatedBooks.Add(newBook);
-            }else
+            }
+            else
             {
                 var content = await response.Content.ReadAsStringAsync();
                 Snackbar.Add(content, Severity.Error);
             }
         }
     }
+
 }
 
 <style>

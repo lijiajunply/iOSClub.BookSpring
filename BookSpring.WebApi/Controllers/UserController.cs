@@ -24,12 +24,32 @@ public class UserController(
     {
         var member = httpContextAccessor.HttpContext?.User.GetUser();
         if (member == null) return NotFound("用户未登录或验证已超时");
-        member = await context.Users.Include(x => x.LendBooks)
-            .Include(x => x.CreatedBooks)
+        member = await context.Users
             .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
         if (member == null) return NotFound("找不到用户");
 
         var compressAfterByte = GZipServer.Compress(JsonSerializer.SerializeToUtf8Bytes(member));
+        return Convert.ToBase64String(compressAfterByte);
+    }
+
+    [TokenActionFilter]
+    [Authorize]
+    [HttpGet("/UserAll")]
+    public async Task<ActionResult<string>> GetUserAllData()
+    {
+        var member = httpContextAccessor.HttpContext?.User.GetUser();
+        if (member == null) return NotFound("用户未登录或验证已超时");
+        member = await context.Users.Include(x => x.LendBooks)
+            .FirstOrDefaultAsync(x => x.Id == member.Id && x.Name == member.Name);
+        if (member == null) return NotFound("找不到用户");
+
+        var book = new UserBookModel
+        {
+            CreatedBooks = await context.Books.Where(x => x.CreatedById == member.Id).ToListAsync(),
+            LendBooks = await context.Books.Where(x => x.LendToId == member.Id).ToListAsync(),
+        };
+
+        var compressAfterByte = GZipServer.Compress(JsonSerializer.SerializeToUtf8Bytes(book));
         return Convert.ToBase64String(compressAfterByte);
     }
 

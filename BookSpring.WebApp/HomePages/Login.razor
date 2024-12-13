@@ -31,7 +31,6 @@
 
 
 @code {
-
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
@@ -46,6 +45,7 @@
 
     private async Task OnValidSubmit(EditContext context)
     {
+        Snackbar.Add("正在登录...", Severity.Success);
         var response = await HttpClient.PostAsJsonAsync($"{DataStatic.BaseUrl}/User", Model);
         if (response.IsSuccessStatusCode)
         {
