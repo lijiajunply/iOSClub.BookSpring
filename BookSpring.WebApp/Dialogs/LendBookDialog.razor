@@ -23,7 +23,7 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] [NotNull] private MudDialogInstance? MudDialog { get; set; }
+    [CascadingParameter] [NotNull] private IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter] public BookModel Book { get; set; } = new();
 
