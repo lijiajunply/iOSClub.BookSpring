@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.InteropServices.JavaScript;
 using System.Security.Cryptography;
 using System.Text;
 using BookSpring.DataLib.DataModels;
@@ -8,14 +7,8 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace BookSpring.DataLib;
 
-public sealed class BookContext : DbContext
+public sealed class BookContext(DbContextOptions<BookContext> options) : DbContext(options)
 {
-    public BookContext(DbContextOptions<BookContext> options) : base(options)
-    {
-        Books = Set<BookModel>();
-        Users = Set<UserModel>();
-    }
-
     public DbSet<BookModel> Books { get; init; }
     public DbSet<UserModel> Users { get; init; }
     public DbSet<CategoryModel> Categories { get; init; }
